@@ -1,0 +1,57 @@
+[
+  {
+    "id": "ch001",
+    "name": "テクノロジー解説チャンネル",
+    "avatar_url": "https://i.pravatar.cc/150?img=11",
+    "banner_url": "https://picsum.photos/seed/tech/1600/400",
+    "description": "最新のテクノロジーやガジェットについて分かりやすく解説します。週3回更新、登録者12万人突破！",
+    "subscriber_count": 125000,
+    "video_count": 342,
+    "created_at": "2020-03-15T00:00:00Z",
+    "is_verified": true
+  },
+  {
+    "id": "ch002",
+    "name": "料理研究家 山田",
+    "avatar_url": "https://i.pravatar.cc/150?img=5",
+    "banner_url": "https://picsum.photos/seed/cooking/1600/400",
+    "description": "簡単で美味しい家庭料理のレシピを毎週アップロードしています。初心者でも作れる料理をたくさん紹介！",
+    "subscriber_count": 89000,
+    "video_count": 156,
+    "created_at": "2019-06-20T00:00:00Z",
+    "is_verified": false
+  },
+  {
+    "id": "ch003",
+    "name": "旅する人",
+    "avatar_url": "https://i.pravatar.cc/150?img=8",
+    "banner_url": "https://picsum.photos/seed/travel/1600/400",
+    "description": "世界中を旅しながらVlog を配信中。美しい景色と現地のグルメ、文化をお届けします。",
+    "subscriber_count": 203000,
+    "video_count": 487,
+    "created_at": "2018-09-10T00:00:00Z",
+    "is_verified": true
+  },
+  {
+    "id": "ch004",
+    "name": "ゲーム実況 - Player1",
+    "avatar_url": "https://i.pravatar.cc/150?img=12",
+    "banner_url": "https://picsum.photos/seed/gaming/1600/400",
+    "description": "最新ゲームから懐かしのレトロゲームまで、幅広く実況プレイしています。毎日19時更新！",
+    "subscriber_count": 450000,
+    "video_count": 1240,
+    "created_at": "2017-05-01T00:00:00Z",
+    "is_verified": true
+  },
+  {
+    "id": "ch005",
+    "name": "フィットネスコーチ 佐藤",
+    "avatar_url": "https://i.pravatar.cc/150?img=14",
+    "banner_url": "https://picsum.photos/seed/fitness/1600/400",
+    "description": "自宅でできる簡単トレーニングを紹介。初心者から上級者まで、あなたに合ったワークアウトが見つかります！",
+    "subscriber_count": 167000,
+    "video_count": 298,
+    "created_at": "2019-01-20T00:00:00Z",
+    "is_verified": true
+  }
+]

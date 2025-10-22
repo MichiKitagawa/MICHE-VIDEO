@@ -1,0 +1,51 @@
+[
+  {
+    "id": "sub1",
+    "channel_name": "CreatorA",
+    "channel_avatar": "https://picsum.photos/40/40?random=101",
+    "subscriber_count": 125000,
+    "subscribed_at": "2025-09-15T10:00:00Z"
+  },
+  {
+    "id": "sub2",
+    "channel_name": "ArtistB",
+    "channel_avatar": "https://picsum.photos/40/40?random=102",
+    "subscriber_count": 89000,
+    "subscribed_at": "2025-09-20T14:30:00Z"
+  },
+  {
+    "id": "sub3",
+    "channel_name": "StoryTeller",
+    "channel_avatar": "https://picsum.photos/40/40?random=103",
+    "subscriber_count": 250000,
+    "subscribed_at": "2025-08-10T09:00:00Z"
+  },
+  {
+    "id": "sub4",
+    "channel_name": "MusicAnimator",
+    "channel_avatar": "https://picsum.photos/40/40?random=106",
+    "subscriber_count": 185000,
+    "subscribed_at": "2025-10-01T16:00:00Z"
+  },
+  {
+    "id": "sub5",
+    "channel_name": "FanArtist",
+    "channel_avatar": "https://picsum.photos/40/40?random=107",
+    "subscriber_count": 98000,
+    "subscribed_at": "2025-09-25T11:30:00Z"
+  },
+  {
+    "id": "sub6",
+    "channel_name": "BusinessPro",
+    "channel_avatar": "https://picsum.photos/40/40?random=104",
+    "subscriber_count": 32000,
+    "subscribed_at": "2025-10-10T13:00:00Z"
+  },
+  {
+    "id": "sub7",
+    "channel_name": "MICHETeam",
+    "channel_avatar": "https://picsum.photos/40/40?random=110",
+    "subscriber_count": 300000,
+    "subscribed_at": "2025-07-01T10:00:00Z"
+  }
+]

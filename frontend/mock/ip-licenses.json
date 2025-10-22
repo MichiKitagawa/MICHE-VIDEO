@@ -1,0 +1,32 @@
+[
+  {
+    "id": "ip1",
+    "name": "ファンタジーワールドキャラクター",
+    "thumbnail": "https://picsum.photos/80/80?random=201",
+    "license_type": "商用利用可"
+  },
+  {
+    "id": "ip2",
+    "name": "サイバーパンクシティ",
+    "thumbnail": "https://picsum.photos/80/80?random=202",
+    "license_type": "非商用のみ"
+  },
+  {
+    "id": "ip3",
+    "name": "魔法少女シリーズ",
+    "thumbnail": "https://picsum.photos/80/80?random=203",
+    "license_type": "商用利用可"
+  },
+  {
+    "id": "ip4",
+    "name": "スペースオペラ艦隊",
+    "thumbnail": "https://picsum.photos/80/80?random=204",
+    "license_type": "商用利用可"
+  },
+  {
+    "id": "ip5",
+    "name": "日常系キャラクター",
+    "thumbnail": "https://picsum.photos/80/80?random=205",
+    "license_type": "非商用のみ"
+  }
+]

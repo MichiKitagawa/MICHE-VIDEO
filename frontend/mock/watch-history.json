@@ -1,0 +1,82 @@
+[
+  {
+    "id": "wh_001",
+    "video_id": "v_001",
+    "video_title": "最新のAI技術トレンド2024",
+    "thumbnail_url": "https://picsum.photos/seed/video1/640/360",
+    "user_name": "Tech Insights Japan",
+    "user_avatar": "https://i.pravatar.cc/150?img=1",
+    "watched_at": "2024-01-20T15:30:00Z",
+    "progress": 85
+  },
+  {
+    "id": "wh_002",
+    "video_id": "v_002",
+    "video_title": "React Native完全ガイド",
+    "thumbnail_url": "https://picsum.photos/seed/video2/640/360",
+    "user_name": "Code Master",
+    "user_avatar": "https://i.pravatar.cc/150?img=2",
+    "watched_at": "2024-01-19T20:15:00Z",
+    "progress": 100
+  },
+  {
+    "id": "wh_003",
+    "video_id": "v_003",
+    "video_title": "美しい風景写真の撮り方",
+    "thumbnail_url": "https://picsum.photos/seed/video3/640/360",
+    "user_name": "Photo Studio",
+    "user_avatar": "https://i.pravatar.cc/150?img=3",
+    "watched_at": "2024-01-19T12:45:00Z",
+    "progress": 42
+  },
+  {
+    "id": "wh_004",
+    "video_id": "v_004",
+    "video_title": "30分で作る本格パスタ",
+    "thumbnail_url": "https://picsum.photos/seed/video4/640/360",
+    "user_name": "料理チャンネル",
+    "user_avatar": "https://i.pravatar.cc/150?img=4",
+    "watched_at": "2024-01-18T18:00:00Z",
+    "progress": 100
+  },
+  {
+    "id": "wh_005",
+    "video_id": "v_005",
+    "video_title": "初心者向けギター講座 Part 1",
+    "thumbnail_url": "https://picsum.photos/seed/video5/640/360",
+    "user_name": "Music Academy",
+    "user_avatar": "https://i.pravatar.cc/150?img=5",
+    "watched_at": "2024-01-18T10:20:00Z",
+    "progress": 67
+  },
+  {
+    "id": "wh_006",
+    "video_id": "v_006",
+    "video_title": "東京のおすすめカフェ巡り",
+    "thumbnail_url": "https://picsum.photos/seed/video6/640/360",
+    "user_name": "Tokyo Walker",
+    "user_avatar": "https://i.pravatar.cc/150?img=6",
+    "watched_at": "2024-01-17T16:30:00Z",
+    "progress": 100
+  },
+  {
+    "id": "wh_007",
+    "video_id": "v_007",
+    "video_title": "TypeScriptで学ぶデザインパターン",
+    "thumbnail_url": "https://picsum.photos/seed/video7/640/360",
+    "user_name": "Dev Academy",
+    "user_avatar": "https://i.pravatar.cc/150?img=7",
+    "watched_at": "2024-01-16T21:00:00Z",
+    "progress": 55
+  },
+  {
+    "id": "wh_008",
+    "video_id": "v_008",
+    "video_title": "瞑想とマインドフルネス入門",
+    "thumbnail_url": "https://picsum.photos/seed/video8/640/360",
+    "user_name": "Wellness Life",
+    "user_avatar": "https://i.pravatar.cc/150?img=8",
+    "watched_at": "2024-01-15T07:00:00Z",
+    "progress": 100
+  }
+]

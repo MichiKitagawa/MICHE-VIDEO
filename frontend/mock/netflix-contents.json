@@ -1,0 +1,182 @@
+[
+  {
+    "id": "nc1",
+    "title": "ダークファンタジー：失われた王国",
+    "type": "series",
+    "poster_url": "https://picsum.photos/300/450?random=1",
+    "backdrop_url": "https://picsum.photos/1280/720?random=1",
+    "description": "古代の王国を舞台に、運命に導かれた若者たちが世界を救う旅に出る壮大なファンタジー。",
+    "release_year": 2023,
+    "seasons": [
+      {
+        "season_number": 1,
+        "episodes": [
+          {
+            "episode_number": 1,
+            "title": "始まりの地",
+            "description": "平和な村で育った少年が、運命の剣を手にする。",
+            "duration": 45,
+            "video_url": "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
+            "thumbnail_url": "https://picsum.photos/400/225?random=11"
+          },
+          {
+            "episode_number": 2,
+            "title": "旅立ちの決意",
+            "description": "村が襲撃され、少年は仲間とともに旅に出ることを決意する。",
+            "duration": 48,
+            "video_url": "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4",
+            "thumbnail_url": "https://picsum.photos/400/225?random=12"
+          }
+        ]
+      }
+    ],
+    "genres": ["ファンタジー", "アドベンチャー", "アクション"],
+    "rating": 4.8,
+    "is_adult": false,
+    "country": "JP"
+  },
+  {
+    "id": "nc2",
+    "title": "サイバーパンク：ネオン都市",
+    "type": "movie",
+    "poster_url": "https://picsum.photos/300/450?random=2",
+    "backdrop_url": "https://picsum.photos/1280/720?random=2",
+    "description": "近未来のメガシティを舞台に、一人のハッカーが巨大企業に立ち向かう。",
+    "release_year": 2024,
+    "duration": 135,
+    "video_url": "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
+    "genres": ["SF", "アクション", "スリラー"],
+    "rating": 4.5,
+    "is_adult": false,
+    "country": "JP"
+  },
+  {
+    "id": "nc3",
+    "title": "ラブ＆ライフ",
+    "type": "series",
+    "poster_url": "https://picsum.photos/300/450?random=3",
+    "backdrop_url": "https://picsum.photos/1280/720?random=3",
+    "description": "都会で働く若者たちの恋愛と人生を描くロマンティックコメディ。",
+    "release_year": 2023,
+    "seasons": [
+      {
+        "season_number": 1,
+        "episodes": [
+          {
+            "episode_number": 1,
+            "title": "偶然の出会い",
+            "description": "カフェで偶然出会った二人の運命が動き出す。",
+            "duration": 30,
+            "video_url": "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
+            "thumbnail_url": "https://picsum.photos/400/225?random=13"
+          }
+        ]
+      }
+    ],
+    "genres": ["ロマンス", "コメディ", "ドラマ"],
+    "rating": 4.2,
+    "is_adult": false,
+    "country": "JP"
+  },
+  {
+    "id": "nc4",
+    "title": "ミステリアスハウス",
+    "type": "movie",
+    "poster_url": "https://picsum.photos/300/450?random=4",
+    "backdrop_url": "https://picsum.photos/1280/720?random=4",
+    "description": "古い洋館に招待された人々が次々と消えていく。真相は一体...？",
+    "release_year": 2024,
+    "duration": 110,
+    "video_url": "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4",
+    "genres": ["ミステリー", "ホラー", "サスペンス"],
+    "rating": 4.6,
+    "is_adult": false,
+    "country": "US"
+  },
+  {
+    "id": "nc5",
+    "title": "宇宙探検隊クロニクル",
+    "type": "series",
+    "poster_url": "https://picsum.photos/300/450?random=5",
+    "backdrop_url": "https://picsum.photos/1280/720?random=5",
+    "description": "未知の銀河を探索する宇宙船クルーの冒険を描くSFシリーズ。",
+    "release_year": 2022,
+    "seasons": [
+      {
+        "season_number": 1,
+        "episodes": [
+          {
+            "episode_number": 1,
+            "title": "未知なる旅立ち",
+            "description": "地球を離れ、未知の銀河へ向かうクルーたち。",
+            "duration": 42,
+            "video_url": "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4",
+            "thumbnail_url": "https://picsum.photos/400/225?random=14"
+          }
+        ]
+      }
+    ],
+    "genres": ["SF", "アドベンチャー", "ドラマ"],
+    "rating": 4.7,
+    "is_adult": false,
+    "country": "US"
+  },
+  {
+    "id": "nc6",
+    "title": "戦国武将伝",
+    "type": "series",
+    "poster_url": "https://picsum.photos/300/450?random=6",
+    "backdrop_url": "https://picsum.photos/1280/720?random=6",
+    "description": "戦国時代を舞台に、一人の武将の生涯を描く歴史大河ドラマ。",
+    "release_year": 2023,
+    "seasons": [
+      {
+        "season_number": 1,
+        "episodes": [
+          {
+            "episode_number": 1,
+            "title": "若き日の野望",
+            "description": "若き武将が天下統一を夢見て立ち上がる。",
+            "duration": 50,
+            "video_url": "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4",
+            "thumbnail_url": "https://picsum.photos/400/225?random=15"
+          }
+        ]
+      }
+    ],
+    "genres": ["歴史", "ドラマ", "アクション"],
+    "rating": 4.4,
+    "is_adult": false,
+    "country": "JP"
+  },
+  {
+    "id": "nc7",
+    "title": "アクアワールド",
+    "type": "movie",
+    "poster_url": "https://picsum.photos/300/450?random=7",
+    "backdrop_url": "https://picsum.photos/1280/720?random=7",
+    "description": "海底都市を舞台に繰り広げられる壮大な海洋アドベンチャー。",
+    "release_year": 2024,
+    "duration": 125,
+    "video_url": "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
+    "genres": ["アドベンチャー", "ファンタジー", "ファミリー"],
+    "rating": 4.3,
+    "is_adult": false,
+    "country": "US"
+  },
+  {
+    "id": "nc8",
+    "title": "禁断の愛",
+    "type": "movie",
+    "poster_url": "https://picsum.photos/300/450?random=8",
+    "backdrop_url": "https://picsum.photos/1280/720?random=8",
+    "description": "社会的立場の異なる二人が織りなす、切ないラブストーリー。",
+    "release_year": 2023,
+    "duration": 105,
+    "video_url": "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4",
+    "genres": ["ロマンス", "ドラマ"],
+    "rating": 4.1,
+    "is_adult": true,
+    "country": "KR"
+  }
+]

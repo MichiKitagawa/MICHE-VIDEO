@@ -1,0 +1,18 @@
+{
+  "id": "1",
+  "title": "初めての3Dアニメーション制作",
+  "description": "この動画では、初心者でも簡単に3Dアニメーションを制作する方法を解説します。Blenderを使った基本的なモデリングからアニメーションまでを一通り紹介。\n\n使用したIPライセンス：ファンタジーワールドキャラクター\nソフトウェア：Blender 4.0\n制作期間：2週間",
+  "thumbnail_url": "https://picsum.photos/320/180?random=1",
+  "video_url": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
+  "user_name": "CreatorA",
+  "user_avatar": "https://picsum.photos/40/40?random=101",
+  "view_count": 12500,
+  "created_at": "2025-10-20T10:00:00Z",
+  "is_adult": false,
+  "ip_license": {
+    "id": "ip1",
+    "name": "ファンタジーワールドキャラクター",
+    "thumbnail": "https://picsum.photos/80/80?random=201",
+    "license_type": "商用利用可"
+  }
+}
