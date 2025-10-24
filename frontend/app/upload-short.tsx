@@ -39,6 +39,7 @@ export default function UploadShortScreen() {
   // Step 3
   const [isAdult, setIsAdult] = useState(false);
   const [allowComments, setAllowComments] = useState(true);
+  const [mosaicConfirmed, setMosaicConfirmed] = useState(false);
 
   const pickVideo = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -312,7 +313,14 @@ export default function UploadShortScreen() {
             <View style={styles.card}>
               <TouchableOpacity
                 style={styles.settingRow}
-                onPress={() => setIsAdult(!isAdult)}
+                onPress={() => {
+                  const newValue = !isAdult;
+                  setIsAdult(newValue);
+                  // 成人向けをOFFにした場合、モザイク確認もリセット
+                  if (!newValue) {
+                    setMosaicConfirmed(false);
+                  }
+                }}
               >
                 <View style={styles.settingInfo}>
                   <Text style={styles.settingLabel}>18歳以上向けコンテンツ</Text>
@@ -325,6 +333,42 @@ export default function UploadShortScreen() {
                 </View>
               </TouchableOpacity>
             </View>
+
+            {/* 成人向けコンテンツの警告 */}
+            {isAdult && (
+              <View style={styles.warningCard}>
+                <View style={styles.warningHeader}>
+                  <Ionicons name="warning" size={24} color="#DC2626" />
+                  <Text style={styles.warningTitle}>
+                    アダルトコンテンツのアップロードに関する重要な注意
+                  </Text>
+                </View>
+                <View style={styles.warningContent}>
+                  <Text style={styles.warningText}>
+                    刑法第175条（わいせつ物頒布等の罪）により、わいせつな画像や動画を公開することは犯罪となります。
+                  </Text>
+                  <Text style={styles.warningText}>
+                    アダルトコンテンツをアップロードする場合は、必ず適切なモザイク処理を施してください。
+                  </Text>
+                  <Text style={styles.warningTextBold}>
+                    違反した場合、3年以下の懲役または250万円以下の罰金、もしくは両方が科せられる可能性があります。
+                  </Text>
+                </View>
+
+                {/* モザイク確認チェックボックス */}
+                <TouchableOpacity
+                  style={styles.confirmRow}
+                  onPress={() => setMosaicConfirmed(!mosaicConfirmed)}
+                >
+                  <View style={[styles.checkbox, mosaicConfirmed && styles.checkboxChecked]}>
+                    {mosaicConfirmed && <Ionicons name="checkmark" size={16} color={Colors.background} />}
+                  </View>
+                  <Text style={styles.confirmText}>
+                    このコンテンツは刑法第175条に準拠したモザイク処理が施されていることを確認しました
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            )}
 
             {/* コメント許可 */}
             <View style={styles.card}>
@@ -345,7 +389,14 @@ export default function UploadShortScreen() {
             </View>
 
             <View style={styles.buttonContainer}>
-              <TouchableOpacity style={styles.uploadButton} onPress={handleUpload}>
+              <TouchableOpacity
+                style={[
+                  styles.uploadButton,
+                  (isAdult && !mosaicConfirmed) && styles.uploadButtonDisabled,
+                ]}
+                onPress={handleUpload}
+                disabled={isAdult && !mosaicConfirmed}
+              >
                 <Ionicons name="cloud-upload" size={20} color={Colors.background} />
                 <Text style={styles.uploadButtonText}>アップロード</Text>
               </TouchableOpacity>
@@ -711,6 +762,58 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     color: Colors.background,
+  },
+  uploadButtonDisabled: {
+    backgroundColor: Colors.inactive,
+  },
+  warningCard: {
+    backgroundColor: '#FEF2F2',
+    borderRadius: 12,
+    padding: 20,
+    borderWidth: 2,
+    borderColor: '#DC2626',
+  },
+  warningHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    marginBottom: 16,
+  },
+  warningTitle: {
+    flex: 1,
+    fontSize: 15,
+    fontWeight: 'bold',
+    color: '#DC2626',
+    lineHeight: 20,
+  },
+  warningContent: {
+    gap: 12,
+    marginBottom: 16,
+  },
+  warningText: {
+    fontSize: 14,
+    color: '#7F1D1D',
+    lineHeight: 20,
+  },
+  warningTextBold: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#DC2626',
+    lineHeight: 20,
+  },
+  confirmRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 12,
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: '#FCA5A5',
+  },
+  confirmText: {
+    flex: 1,
+    fontSize: 14,
+    color: '#7F1D1D',
+    lineHeight: 20,
   },
   ipPickerModal: {
     position: 'absolute',

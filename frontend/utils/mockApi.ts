@@ -96,6 +96,24 @@ export const getShortDetail = async (id: string): Promise<Short | null> => {
   return short || null;
 };
 
+// ショート動画を検索
+export const searchShorts = async (query: string): Promise<Short[]> => {
+  const shorts = await getShorts();
+
+  if (!query.trim()) {
+    return shorts;
+  }
+
+  const lowerQuery = query.toLowerCase();
+
+  return shorts.filter(short =>
+    short.title.toLowerCase().includes(lowerQuery) ||
+    short.description?.toLowerCase().includes(lowerQuery) ||
+    short.user_name.toLowerCase().includes(lowerQuery) ||
+    short.category?.toLowerCase().includes(lowerQuery)
+  );
+};
+
 // サブスクリプション一覧を取得
 export const getSubscriptions = async (): Promise<Subscription[]> => {
   return subscriptionsData as Subscription[];

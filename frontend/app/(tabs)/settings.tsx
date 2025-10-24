@@ -21,6 +21,7 @@ import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import Header from '../../components/Header';
 import PlanCard from '../../components/PlanCard';
+import AgeVerificationModal from '../../components/AgeVerificationModal';
 import { Colors } from '../../constants/Colors';
 import {
   getUser,
@@ -102,6 +103,10 @@ export default function SettingsScreen() {
   const [accountHolder, setAccountHolder] = useState('');
   const [paypalEmail, setPaypalEmail] = useState('');
 
+  // 年齢確認モーダル関連
+  const [ageVerificationModalVisible, setAgeVerificationModalVisible] = useState(false);
+  const [pendingPlanId, setPendingPlanId] = useState<string | null>(null);
+
   // 通知設定
   const [pushNotifications, setPushNotifications] = useState(true);
   const [emailNotifications, setEmailNotifications] = useState(true);
@@ -155,6 +160,23 @@ export default function SettingsScreen() {
   };
 
   const handlePlanChange = async (targetPlanId: string) => {
+    const currentPlan = plans.find(p => p.is_current);
+    const targetPlan = plans.find(p => p.id === targetPlanId);
+
+    if (!currentPlan || !targetPlan) return;
+
+    // Premium+プラン（成人向けコンテンツ含む）の場合、年齢確認モーダルを表示
+    if (targetPlan.has_adult_access) {
+      setPendingPlanId(targetPlanId);
+      setAgeVerificationModalVisible(true);
+      return;
+    }
+
+    // 年齢確認不要なプランの場合は既存のフローを実行
+    await executePlanChange(targetPlanId);
+  };
+
+  const executePlanChange = async (targetPlanId: string) => {
     const currentPlan = plans.find(p => p.is_current);
     const targetPlan = plans.find(p => p.id === targetPlanId);
 
@@ -217,6 +239,19 @@ export default function SettingsScreen() {
         ]
       );
     }
+  };
+
+  const handleAgeVerificationConfirm = async () => {
+    setAgeVerificationModalVisible(false);
+    if (pendingPlanId) {
+      await executePlanChange(pendingPlanId);
+      setPendingPlanId(null);
+    }
+  };
+
+  const handleAgeVerificationCancel = () => {
+    setAgeVerificationModalVisible(false);
+    setPendingPlanId(null);
   };
 
   const handleCancelSubscription = () => {
@@ -760,7 +795,7 @@ export default function SettingsScreen() {
                 ) : (
                   withdrawalHistory.map((request) => (
                     <View key={request.id} style={styles.historyCard}>
-                      <View style={styles.historyHeader}>
+                      <View style={styles.withdrawalHistoryHeader}>
                         <Text style={styles.historyAmount}>¥{request.amount.toLocaleString()}</Text>
                         <View style={[
                           styles.statusBadge,
@@ -1231,6 +1266,13 @@ export default function SettingsScreen() {
           </Pressable>
         </Pressable>
       </Modal>
+
+      {/* 年齢確認モーダル */}
+      <AgeVerificationModal
+        visible={ageVerificationModalVisible}
+        onConfirm={handleAgeVerificationConfirm}
+        onCancel={handleAgeVerificationCancel}
+      />
     </View>
   );
 }
@@ -1997,7 +2039,7 @@ const styles = StyleSheet.create({
     borderColor: Colors.border,
     marginBottom: 12,
   },
-  historyHeader: {
+  withdrawalHistoryHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',

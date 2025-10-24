@@ -1,20 +1,20 @@
 import { PaymentProvider } from '../types';
 
 /**
- * ³óÆóÄn¢ÀëÈÕé°kúeDfijz×íĞ¤Àü’x
+ * ã‚³ãƒ³ãƒ†ãƒ³ãƒ„ã®ç¨®é¡ã«åŸºã¥ã„ã¦æ±ºæ¸ˆãƒ—ãƒ­ãƒã‚¤ãƒ€ãƒ¼ã‚’é¸æŠ
  */
 export function selectPaymentProvider(isAdultContent: boolean): PaymentProvider {
   if (isAdultContent) {
-    // ¢ÀëÈ³óÆóÄoºQ€z
-    return 'ccbill';  // ~_o 'epoch'
+    // ã‚¢ãƒ€ãƒ«ãƒˆã‚³ãƒ³ãƒ†ãƒ³ãƒ„ã¯CCBill
+    return 'ccbill';  // ã¾ãŸã¯ 'epoch'
   } else {
-    // ^¢ÀëÈoStripe
+    // ä¸€èˆ¬ã‚³ãƒ³ãƒ†ãƒ³ãƒ„ã¯Stripe
     return 'stripe';
   }
 }
 
 /**
- * ×éónz×íĞ¤ÀükúeDfzURL’Ö—
+ * æ±ºæ¸ˆãƒ—ãƒ­ãƒã‚¤ãƒ€ãƒ¼ã”ã¨ã®æ±ºæ¸ˆURLã‚’ç”Ÿæˆ
  */
 export function getPaymentUrl(
   provider: PaymentProvider,
@@ -34,7 +34,7 @@ export function getPaymentUrl(
 }
 
 /**
- * •R­nzæ
+ * æŠ•ã’éŠ­å‡¦ç†
  */
 export async function processTip(
   contentId: string,
@@ -45,7 +45,7 @@ export async function processTip(
 ): Promise<{ success: boolean; paymentUrl: string }> {
   const provider = selectPaymentProvider(isAdultContent);
 
-  // Ÿ›nŸÅgoAPI³üë’LF
+  // æ±ºæ¸ˆãƒ—ãƒ­ãƒã‚¤ãƒ€ãƒ¼ã®APIã‚¨ãƒ³ãƒ‰ãƒã‚¤ãƒ³ãƒˆã‚’ç”Ÿæˆ
   const messageParam = message ? `&message=${encodeURIComponent(message)}` : '';
   const paymentUrl = `/api/payment/${provider}/tip?content=${contentId}&type=${contentType}&amount=${amount}${messageParam}`;
 
@@ -56,7 +56,7 @@ export async function processTip(
 }
 
 /**
- * z×íĞ¤Àünh:’Ö—
+ * æ±ºæ¸ˆãƒ—ãƒ­ãƒã‚¤ãƒ€ãƒ¼ã®è¡¨ç¤ºåã‚’å–å¾—
  */
 export function getPaymentProviderDisplayName(provider: PaymentProvider): string {
   switch (provider) {

@@ -19,6 +19,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Video, ResizeMode } from 'expo-av';
 import { Ionicons } from '@expo/vector-icons';
 import ActionSheet from '../../../components/ActionSheet';
+import TipModal from '../../../components/TipModal';
 import { Short, Comment } from '../../../types';
 import { getShortDetail, getVideoComments, postComment, likeComment, saveContentForLater, reportContent } from '../../../utils/mockApi';
 import { Colors } from '../../../constants/Colors';
@@ -70,6 +71,9 @@ export default function ShortDetailScreen() {
 
   // ActionSheet
   const [actionSheetVisible, setActionSheetVisible] = useState(false);
+
+  // TipModal
+  const [tipModalVisible, setTipModalVisible] = useState(false);
 
   useEffect(() => {
     loadShort();
@@ -260,6 +264,15 @@ export default function ShortDetailScreen() {
           <Text style={styles.actionText}>シェア</Text>
         </TouchableOpacity>
 
+        {/* 投げ銭 */}
+        <TouchableOpacity
+          style={styles.actionButton}
+          onPress={() => setTipModalVisible(true)}
+        >
+          <Ionicons name="gift-outline" size={32} color={Colors.primary} />
+          <Text style={[styles.actionText, styles.tipButtonText]}>投げ銭</Text>
+        </TouchableOpacity>
+
         {/* メニュー */}
         <TouchableOpacity
           style={styles.actionButton}
@@ -396,6 +409,17 @@ export default function ShortDetailScreen() {
           { label: '報告', icon: 'flag-outline', onPress: handleReport, destructive: true },
         ]}
       />
+
+      {/* 投げ銭モーダル */}
+      <TipModal
+        visible={tipModalVisible}
+        onClose={() => setTipModalVisible(false)}
+        contentId={short.id}
+        contentType="short"
+        contentTitle={short.title}
+        creatorName={short.user_name}
+        isAdultContent={short.is_adult}
+      />
     </View>
   );
 }
@@ -479,6 +503,9 @@ const styles = StyleSheet.create({
     textShadowColor: 'rgba(0, 0, 0, 0.75)',
     textShadowOffset: { width: 0, height: 1 },
     textShadowRadius: 3,
+  },
+  tipButtonText: {
+    color: Colors.primary,
   },
   infoContainer: {
     position: 'absolute',

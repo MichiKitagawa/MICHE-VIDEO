@@ -21,7 +21,7 @@ import { Ionicons } from '@expo/vector-icons';
 import ShortVideoPlayer from '../../components/ShortVideoPlayer';
 import ActionSheet from '../../components/ActionSheet';
 import { Short, Comment, SubscriptionPlan } from '../../types';
-import { getShorts, getVideoComments, postComment, likeComment, getCurrentSubscriptionPlan } from '../../utils/mockApi';
+import { getShorts, searchShorts, getVideoComments, postComment, likeComment, getCurrentSubscriptionPlan } from '../../utils/mockApi';
 import { filterContentByPlan } from '../../utils/contentAccess';
 import { Colors } from '../../constants/Colors';
 
@@ -49,6 +49,7 @@ export default function ShortsScreen() {
   const [loading, setLoading] = useState(true);
   const [currentPlan, setCurrentPlan] = useState<SubscriptionPlan | null>(null);
   const [activeShortId, setActiveShortId] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
 
   // ActionSheet状態
   const [actionSheetVisible, setActionSheetVisible] = useState(false);
@@ -81,6 +82,29 @@ export default function ShortsScreen() {
     } finally {
       setLoading(false);
     }
+  };
+
+  // 検索処理
+  const handleSearch = async (query: string) => {
+    setSearchQuery(query);
+    if (!query.trim()) {
+      // 検索クエリが空の場合は全件取得
+      await loadShorts();
+    } else {
+      // 検索実行
+      try {
+        const searchResults = await searchShorts(query);
+        setShorts(searchResults);
+      } catch (error) {
+        console.error('Failed to search shorts:', error);
+      }
+    }
+  };
+
+  // 検索クリア
+  const handleClearSearch = () => {
+    setSearchQuery('');
+    loadShorts();
   };
 
   // プランによるフィルタリング
@@ -195,6 +219,25 @@ export default function ShortsScreen() {
 
   return (
     <View style={styles.container}>
+      {/* 検索バー */}
+      <View style={styles.searchBarContainer}>
+        <View style={styles.searchBar}>
+          <Ionicons name="search" size={20} color={Colors.textSecondary} />
+          <TextInput
+            style={styles.searchInput}
+            placeholder="ショートを検索..."
+            placeholderTextColor={Colors.textSecondary}
+            value={searchQuery}
+            onChangeText={handleSearch}
+          />
+          {searchQuery.length > 0 && (
+            <TouchableOpacity onPress={handleClearSearch}>
+              <Ionicons name="close-circle" size={20} color={Colors.textSecondary} />
+            </TouchableOpacity>
+          )}
+        </View>
+      </View>
+
       <FlatList
         data={filteredShorts}
         keyExtractor={(item) => item.id}
@@ -340,6 +383,31 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: Colors.text,
+  },
+  searchBarContainer: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    zIndex: 100,
+    paddingTop: 50,
+    paddingHorizontal: 16,
+    paddingBottom: 12,
+    backgroundColor: 'rgba(0, 0, 0, 0.3)',
+  },
+  searchBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    borderRadius: 20,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    gap: 8,
+  },
+  searchInput: {
+    flex: 1,
+    fontSize: 15,
+    color: Colors.text,
   },
   // コメントモーダル
   modalBackdrop: {
