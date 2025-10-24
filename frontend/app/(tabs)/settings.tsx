@@ -42,6 +42,7 @@ import {
   addWithdrawalMethod,
   deleteWithdrawalMethod,
   setDefaultWithdrawalMethod,
+  getPlaylists,
 } from '../../utils/mockApi';
 import {
   User,
@@ -53,9 +54,10 @@ import {
   EarningsStats,
   WithdrawalMethod,
   WithdrawalRequest,
+  Playlist,
 } from '../../types';
 
-type TabType = 'profile' | 'channels' | 'plan' | 'earnings' | 'creation' | 'saved' | 'notifications' | 'history' | 'account';
+type TabType = 'profile' | 'channels' | 'plan' | 'earnings' | 'creation' | 'saved' | 'playlists' | 'notifications' | 'history' | 'account';
 
 const TABS = [
   { key: 'profile', label: 'プロフィール' },
@@ -64,6 +66,7 @@ const TABS = [
   { key: 'earnings', label: '収益管理' },
   { key: 'creation', label: 'Creation' },
   { key: 'saved', label: '保存済み' },
+  { key: 'playlists', label: 'プレイリスト' },
   { key: 'notifications', label: '通知設定' },
   { key: 'history', label: '視聴履歴' },
   { key: 'account', label: 'アカウント' },
@@ -79,6 +82,7 @@ export default function SettingsScreen() {
   const [channels, setChannels] = useState<SubscribedChannel[]>([]);
   const [plans, setPlans] = useState<SubscriptionPlan[]>([]);
   const [watchHistory, setWatchHistory] = useState<WatchHistory[]>([]);
+  const [playlists, setPlaylists] = useState<Playlist[]>([]);
 
   // 請求・支払い関連
   const [billingHistory, setBillingHistory] = useState<BillingHistory[]>([]);
@@ -132,6 +136,7 @@ export default function SettingsScreen() {
     const channelsData = await getSubscribedChannels();
     const plansData = await getAvailableSubscriptionPlans();
     const historyData = await getWatchHistory();
+    const playlistsData = await getPlaylists();
     const billingData = await getBillingHistory();
     const paymentData = await getPaymentMethods();
     const earningsData = await getEarningsStats();
@@ -142,6 +147,7 @@ export default function SettingsScreen() {
     setChannels(channelsData);
     setPlans(plansData);
     setWatchHistory(historyData);
+    setPlaylists(playlistsData);
     setBillingHistory(billingData);
     setPaymentMethods(paymentData);
     setEarningsStats(earningsData);
@@ -913,6 +919,71 @@ export default function SettingsScreen() {
 
           {/* 保存済みタブ */}
           {activeTab === 'saved' && <SavedContentsTab />}
+
+          {/* プレイリストタブ */}
+          {activeTab === 'playlists' && (
+            <ScrollView style={styles.scrollView} contentContainerStyle={[styles.scrollContent, isMobile && styles.scrollContentMobile]}>
+              <View style={styles.sectionHeader}>
+                <Text style={styles.sectionTitle}>プレイリスト</Text>
+                <TouchableOpacity
+                  style={styles.createButton}
+                  onPress={() => router.push('/playlists' as any)}
+                >
+                  <Ionicons name="add" size={20} color={Colors.background} />
+                  <Text style={styles.createButtonText}>新規作成</Text>
+                </TouchableOpacity>
+              </View>
+
+              {playlists.length === 0 ? (
+                <View style={styles.emptyState}>
+                  <Ionicons name="list" size={64} color={Colors.border} />
+                  <Text style={styles.emptyStateText}>プレイリストがありません</Text>
+                  <Text style={styles.emptyStateSubText}>
+                    プレイリストを作成して動画を整理しましょう
+                  </Text>
+                </View>
+              ) : (
+                <View style={styles.playlistGrid}>
+                  {playlists.map((playlist) => (
+                    <TouchableOpacity
+                      key={playlist.id}
+                      style={styles.playlistCard}
+                      onPress={() => router.push(`/playlist/${playlist.id}` as any)}
+                    >
+                      {playlist.thumbnail_url ? (
+                        <Image
+                          source={{ uri: playlist.thumbnail_url }}
+                          style={styles.playlistThumbnail}
+                        />
+                      ) : (
+                        <View style={[styles.playlistThumbnail, styles.playlistThumbnailEmpty]}>
+                          <Ionicons name="play" size={32} color={Colors.textSecondary} />
+                        </View>
+                      )}
+                      <View style={styles.playlistInfo}>
+                        <Text style={styles.playlistName} numberOfLines={2}>
+                          {playlist.name}
+                        </Text>
+                        <Text style={styles.playlistCount}>
+                          {playlist.video_count}本の動画
+                        </Text>
+                        <View style={styles.playlistMeta}>
+                          <Ionicons
+                            name={playlist.is_public ? 'globe-outline' : 'lock-closed-outline'}
+                            size={14}
+                            color={Colors.textSecondary}
+                          />
+                          <Text style={styles.playlistVisibility}>
+                            {playlist.is_public ? '公開' : '非公開'}
+                          </Text>
+                        </View>
+                      </View>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              )}
+            </ScrollView>
+          )}
 
           {/* 通知設定タブ */}
           {activeTab === 'notifications' && (
@@ -2306,5 +2377,88 @@ const styles = StyleSheet.create({
   },
   accountTypeTextActive: {
     color: Colors.background,
+  },
+  // プレイリスト
+  sectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 20,
+  },
+  createButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: Colors.primary,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+  },
+  createButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: Colors.background,
+  },
+  emptyState: {
+    alignItems: 'center',
+    paddingVertical: 60,
+  },
+  emptyStateText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: Colors.text,
+    marginTop: 16,
+    marginBottom: 8,
+  },
+  emptyStateSubText: {
+    fontSize: 14,
+    color: Colors.textSecondary,
+    textAlign: 'center',
+  },
+  playlistGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 16,
+  },
+  playlistCard: {
+    width: '100%',
+    maxWidth: 300,
+    backgroundColor: Colors.surface,
+    borderRadius: 12,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  playlistThumbnail: {
+    width: '100%',
+    height: 168,
+    backgroundColor: Colors.border,
+  },
+  playlistThumbnailEmpty: {
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  playlistInfo: {
+    padding: 12,
+  },
+  playlistName: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: Colors.text,
+    marginBottom: 4,
+  },
+  playlistCount: {
+    fontSize: 13,
+    color: Colors.textSecondary,
+    marginBottom: 8,
+  },
+  playlistMeta: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  playlistVisibility: {
+    fontSize: 12,
+    color: Colors.textSecondary,
   },
 });
