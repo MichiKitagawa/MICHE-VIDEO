@@ -1,11 +1,12 @@
 // 動画タブ（YouTube風）
 
 import React, { useEffect, useState, useMemo } from 'react';
-import { View, FlatList, StyleSheet, ActivityIndicator, useWindowDimensions } from 'react-native';
+import { View, FlatList, StyleSheet, ActivityIndicator, useWindowDimensions, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
 import Header from '../../components/Header';
 import CategoryChipsBar from '../../components/CategoryChipsBar';
 import VideoCard from '../../components/VideoCard';
+import ActionSheet from '../../components/ActionSheet';
 import { Video } from '../../types';
 import { getVideos } from '../../utils/mockApi';
 import { Colors } from '../../constants/Colors';
@@ -22,6 +23,10 @@ export default function VideosScreen() {
   const [activeCategory, setActiveCategory] = useState('すべて');
   const [sortBy, setSortBy] = useState<SortType>('relevance');
   const [searchQuery, setSearchQuery] = useState('');
+
+  // ActionSheet状態
+  const [actionSheetVisible, setActionSheetVisible] = useState(false);
+  const [selectedVideo, setSelectedVideo] = useState<Video | null>(null);
 
   // カテゴリー一覧を動的に生成
   const categories = useMemo(() => {
@@ -54,6 +59,26 @@ export default function VideosScreen() {
 
   const handleProfilePress = () => {
     router.push('/auth');
+  };
+
+  const handleMorePress = (video: Video) => {
+    setSelectedVideo(video);
+    setActionSheetVisible(true);
+  };
+
+  const handleShare = () => {
+    Alert.alert('共有', 'この機能は開発中です');
+  };
+
+  const handleSaveForLater = () => {
+    Alert.alert('後で見る', '後で見るリストに追加しました');
+  };
+
+  const handleReport = () => {
+    Alert.alert('報告', 'この動画を報告しますか？', [
+      { text: 'キャンセル', style: 'cancel' },
+      { text: '報告', style: 'destructive', onPress: () => Alert.alert('報告完了', '報告を受け付けました') },
+    ]);
   };
 
   // フィルター・ソート・検索処理
@@ -154,6 +179,7 @@ export default function VideosScreen() {
                 video={item}
                 onPress={() => handleVideoPress(item.id)}
                 onChannelPress={handleChannelPress}
+                onMorePress={handleMorePress}
                 layout="grid"
               />
             </View>
@@ -173,6 +199,7 @@ export default function VideosScreen() {
               video={item}
               onPress={() => handleVideoPress(item.id)}
               onChannelPress={handleChannelPress}
+              onMorePress={handleMorePress}
               layout="list"
             />
           )}
@@ -180,6 +207,18 @@ export default function VideosScreen() {
           contentContainerStyle={styles.listContent}
         />
       )}
+
+      {/* ActionSheet */}
+      <ActionSheet
+        visible={actionSheetVisible}
+        onClose={() => setActionSheetVisible(false)}
+        title={selectedVideo?.title}
+        actions={[
+          { label: '共有', icon: 'share-outline', onPress: handleShare },
+          { label: '後で見る', icon: 'bookmark-outline', onPress: handleSaveForLater },
+          { label: '報告', icon: 'flag-outline', onPress: handleReport, destructive: true },
+        ]}
+      />
     </View>
   );
 }

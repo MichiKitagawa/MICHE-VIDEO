@@ -11,6 +11,9 @@ interface ShortVideoPlayerProps {
   short: Short;
   isActive?: boolean;
   onChannelPress?: (userId: string) => void;
+  onMorePress?: (short: Short) => void;
+  onCommentPress?: (short: Short) => void;
+  onSharePress?: (short: Short) => void;
 }
 
 const TAB_BAR_HEIGHT = 60;
@@ -27,7 +30,7 @@ const formatCount = (count: number): string => {
   return count.toString();
 };
 
-export default function ShortVideoPlayer({ short, isActive = false, onChannelPress }: ShortVideoPlayerProps) {
+export default function ShortVideoPlayer({ short, isActive = false, onChannelPress, onMorePress, onCommentPress, onSharePress }: ShortVideoPlayerProps) {
   const { width, height } = useWindowDimensions();
   const videoRef = useRef<Video>(null);
   const [status, setStatus] = useState<AVPlaybackStatus | null>(null);
@@ -121,19 +124,28 @@ export default function ShortVideoPlayer({ short, isActive = false, onChannelPre
           </TouchableOpacity>
 
           {/* コメント */}
-          <TouchableOpacity style={styles.actionButton}>
+          <TouchableOpacity
+            style={styles.actionButton}
+            onPress={() => onCommentPress?.(short)}
+          >
             <Ionicons name="chatbubble-outline" size={32} color={Colors.background} />
             <Text style={styles.actionText}>{formatCount(short.comment_count)}</Text>
           </TouchableOpacity>
 
           {/* シェア */}
-          <TouchableOpacity style={styles.actionButton}>
+          <TouchableOpacity
+            style={styles.actionButton}
+            onPress={() => onSharePress?.(short)}
+          >
             <Ionicons name="arrow-redo-outline" size={32} color={Colors.background} />
             <Text style={styles.actionText}>シェア</Text>
           </TouchableOpacity>
 
           {/* メニュー */}
-          <TouchableOpacity style={styles.actionButton}>
+          <TouchableOpacity
+            style={styles.actionButton}
+            onPress={() => onMorePress?.(short)}
+          >
             <Ionicons name="ellipsis-vertical" size={28} color={Colors.background} />
           </TouchableOpacity>
         </View>
@@ -188,6 +200,7 @@ const styles = StyleSheet.create({
     bottom: 100,
     alignItems: 'center',
     gap: 24,
+    zIndex: 20,
   },
   avatarContainer: {
     marginBottom: 8,
@@ -216,6 +229,7 @@ const styles = StyleSheet.create({
     left: 12,
     right: 80,
     bottom: 100,
+    zIndex: 10,
   },
   userInfo: {
     flexDirection: 'row',

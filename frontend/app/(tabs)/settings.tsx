@@ -12,13 +12,15 @@ import {
   Alert,
   Switch,
   useWindowDimensions,
+  TextInput,
+  ActivityIndicator,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import Header from '../../components/Header';
 import PlanCard from '../../components/PlanCard';
 import { Colors } from '../../constants/Colors';
-import { getUser, getSubscribedChannels, getSubscriptionPlans, upgradePlan, getWatchHistory } from '../../utils/mockApi';
+import { getUser, getSubscribedChannels, getSubscriptionPlans, upgradePlan, getWatchHistory, updateUser } from '../../utils/mockApi';
 import { User, SubscribedChannel, SubscriptionPlan, WatchHistory } from '../../types';
 
 type TabType = 'profile' | 'channels' | 'plan' | 'creation' | 'notifications' | 'history' | 'account';
@@ -52,6 +54,12 @@ export default function SettingsScreen() {
   // プロフィール設定
   const [publicProfile, setPublicProfile] = useState(true);
 
+  // プロフィール編集フォーム
+  const [editName, setEditName] = useState('');
+  const [editEmail, setEditEmail] = useState('');
+  const [editBio, setEditBio] = useState('');
+  const [saving, setSaving] = useState(false);
+
   useEffect(() => {
     loadData();
   }, []);
@@ -65,6 +73,10 @@ export default function SettingsScreen() {
     setChannels(channelsData);
     setPlans(plansData);
     setWatchHistory(historyData);
+    // フォーム初期値設定
+    setEditName(userData.name);
+    setEditEmail(userData.email);
+    setEditBio(userData.bio || '');
   };
 
   const formatSubscriberCount = (count: number): string => {
@@ -108,6 +120,39 @@ export default function SettingsScreen() {
         },
       ]
     );
+  };
+
+  const handleSaveProfile = async () => {
+    if (!editName.trim()) {
+      Alert.alert('エラー', 'ユーザー名を入力してください');
+      return;
+    }
+
+    setSaving(true);
+    try {
+      await updateUser({
+        name: editName.trim(),
+        email: editEmail.trim(),
+        bio: editBio.trim(),
+      });
+
+      // ローカルの状態も更新
+      if (user) {
+        setUser({
+          ...user,
+          name: editName.trim(),
+          email: editEmail.trim(),
+          bio: editBio.trim(),
+        });
+      }
+
+      Alert.alert('保存完了', 'プロフィール情報を更新しました');
+    } catch (error) {
+      console.error('Failed to update profile:', error);
+      Alert.alert('エラー', 'プロフィールの更新に失敗しました');
+    } finally {
+      setSaving(false);
+    }
   };
 
   // モバイル用タブナビゲーション
@@ -185,16 +230,26 @@ export default function SettingsScreen() {
               <View style={styles.formSection}>
                 <View style={styles.formField}>
                   <Text style={styles.fieldLabel}>ユーザー名</Text>
-                  <View style={styles.fieldValue}>
-                    <Text style={styles.fieldValueText}>{user.name}</Text>
-                  </View>
+                  <TextInput
+                    style={styles.fieldInput}
+                    value={editName}
+                    onChangeText={setEditName}
+                    placeholder="ユーザー名を入力"
+                    placeholderTextColor={Colors.textSecondary}
+                  />
                 </View>
 
                 <View style={styles.formField}>
                   <Text style={styles.fieldLabel}>メールアドレス</Text>
-                  <View style={styles.fieldValue}>
-                    <Text style={styles.fieldValueText}>{user.email}</Text>
-                  </View>
+                  <TextInput
+                    style={styles.fieldInput}
+                    value={editEmail}
+                    onChangeText={setEditEmail}
+                    placeholder="メールアドレスを入力"
+                    placeholderTextColor={Colors.textSecondary}
+                    keyboardType="email-address"
+                    autoCapitalize="none"
+                  />
                 </View>
 
                 <View style={styles.formField}>
@@ -202,6 +257,20 @@ export default function SettingsScreen() {
                   <View style={styles.fieldValue}>
                     <Text style={styles.fieldValueText}>{user.id}</Text>
                   </View>
+                </View>
+
+                <View style={styles.formField}>
+                  <Text style={styles.fieldLabel}>チャンネル説明</Text>
+                  <TextInput
+                    style={[styles.fieldInput, styles.bioInput]}
+                    value={editBio}
+                    onChangeText={setEditBio}
+                    placeholder="チャンネルの説明を入力"
+                    placeholderTextColor={Colors.textSecondary}
+                    multiline
+                    numberOfLines={4}
+                    textAlignVertical="top"
+                  />
                 </View>
 
                 <View style={styles.settingItem}>
@@ -219,8 +288,16 @@ export default function SettingsScreen() {
                   />
                 </View>
 
-                <TouchableOpacity style={styles.editButton}>
-                  <Text style={styles.editButtonText}>編集（モック）</Text>
+                <TouchableOpacity
+                  style={[styles.editButton, saving && styles.editButtonDisabled]}
+                  onPress={handleSaveProfile}
+                  disabled={saving}
+                >
+                  {saving ? (
+                    <ActivityIndicator size="small" color={Colors.background} />
+                  ) : (
+                    <Text style={styles.editButtonText}>保存（モック）</Text>
+                  )}
                 </TouchableOpacity>
               </View>
             </ScrollView>
@@ -599,12 +676,29 @@ const styles = StyleSheet.create({
     fontSize: 15,
     color: Colors.text,
   },
+  fieldInput: {
+    borderWidth: 1,
+    borderColor: Colors.border,
+    borderRadius: 8,
+    padding: 12,
+    fontSize: 15,
+    color: Colors.text,
+    backgroundColor: Colors.background,
+  },
+  bioInput: {
+    minHeight: 100,
+    paddingTop: 12,
+    textAlignVertical: 'top',
+  },
   editButton: {
     backgroundColor: Colors.primary,
     paddingVertical: 12,
     borderRadius: 8,
     alignItems: 'center',
     marginTop: 12,
+  },
+  editButtonDisabled: {
+    opacity: 0.6,
   },
   editButtonText: {
     fontSize: 16,

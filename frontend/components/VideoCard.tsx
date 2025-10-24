@@ -11,6 +11,7 @@ interface VideoCardProps {
   video: Video;
   onPress: () => void;
   onChannelPress?: (userId: string) => void;
+  onMorePress?: (video: Video) => void; // 3点リーダーメニュー
   layout?: 'list' | 'grid'; // レイアウトモード
 }
 
@@ -49,11 +50,18 @@ const formatDuration = (seconds: number): string => {
   return `${minutes}:${secs.toString().padStart(2, '0')}`;
 };
 
-export default function VideoCard({ video, onPress, onChannelPress, layout = 'list' }: VideoCardProps) {
+export default function VideoCard({ video, onPress, onChannelPress, onMorePress, layout = 'list' }: VideoCardProps) {
   const handleAvatarPress = (e: any) => {
     e.stopPropagation();
     if (onChannelPress) {
       onChannelPress(video.user_id);
+    }
+  };
+
+  const handleMorePress = (e: any) => {
+    e.stopPropagation();
+    if (onMorePress) {
+      onMorePress(video);
     }
   };
   if (layout === 'grid') {
@@ -63,10 +71,30 @@ export default function VideoCard({ video, onPress, onChannelPress, layout = 'li
         {/* サムネイル */}
         <View style={styles.gridThumbnailContainer}>
           <Image source={{ uri: video.thumbnail_url }} style={styles.gridThumbnail} />
-          {/* 再生時間オーバーレイ */}
-          <View style={styles.durationBadge}>
-            <Text style={styles.durationText}>{formatDuration(video.duration)}</Text>
-          </View>
+
+          {/* LIVEバッジ */}
+          {video.status === 'live' && (
+            <View style={styles.liveBadge}>
+              <Text style={styles.liveBadgeText}>LIVE</Text>
+            </View>
+          )}
+
+          {/* 視聴者数（ライブ中のみ） */}
+          {video.status === 'live' && video.current_viewers && (
+            <View style={styles.viewerCount}>
+              <Ionicons name="eye" size={12} color="#fff" />
+              <Text style={styles.viewerCountText}>
+                {video.current_viewers.toLocaleString()}人視聴中
+              </Text>
+            </View>
+          )}
+
+          {/* 再生時間オーバーレイ（ライブ以外） */}
+          {video.status !== 'live' && (
+            <View style={styles.durationBadge}>
+              <Text style={styles.durationText}>{formatDuration(video.duration)}</Text>
+            </View>
+          )}
         </View>
 
         {/* 動画情報 */}
@@ -103,9 +131,7 @@ export default function VideoCard({ video, onPress, onChannelPress, layout = 'li
           {/* メニューアイコン */}
           <TouchableOpacity
             style={styles.gridMenuButton}
-            onPress={(e) => {
-              e.stopPropagation();
-            }}
+            onPress={handleMorePress}
           >
             <Ionicons name="ellipsis-vertical" size={20} color={Colors.textSecondary} />
           </TouchableOpacity>
@@ -121,10 +147,30 @@ export default function VideoCard({ video, onPress, onChannelPress, layout = 'li
         {/* サムネイル */}
         <View style={styles.thumbnailContainer}>
           <Image source={{ uri: video.thumbnail_url }} style={styles.thumbnail} />
-          {/* 再生時間オーバーレイ */}
-          <View style={styles.durationBadge}>
-            <Text style={styles.durationText}>{formatDuration(video.duration)}</Text>
-          </View>
+
+          {/* LIVEバッジ */}
+          {video.status === 'live' && (
+            <View style={styles.liveBadge}>
+              <Text style={styles.liveBadgeText}>LIVE</Text>
+            </View>
+          )}
+
+          {/* 視聴者数（ライブ中のみ） */}
+          {video.status === 'live' && video.current_viewers && (
+            <View style={styles.viewerCount}>
+              <Ionicons name="eye" size={12} color="#fff" />
+              <Text style={styles.viewerCountText}>
+                {video.current_viewers.toLocaleString()}人視聴中
+              </Text>
+            </View>
+          )}
+
+          {/* 再生時間オーバーレイ（ライブ以外） */}
+          {video.status !== 'live' && (
+            <View style={styles.durationBadge}>
+              <Text style={styles.durationText}>{formatDuration(video.duration)}</Text>
+            </View>
+          )}
         </View>
 
         {/* 動画情報 */}
@@ -151,7 +197,7 @@ export default function VideoCard({ video, onPress, onChannelPress, layout = 'li
         </View>
 
         {/* メニューアイコン */}
-        <TouchableOpacity style={styles.menuButton} onPress={(e) => e.stopPropagation()}>
+        <TouchableOpacity style={styles.menuButton} onPress={handleMorePress}>
           <Ionicons name="ellipsis-vertical" size={20} color={Colors.textSecondary} />
         </TouchableOpacity>
       </View>
@@ -275,5 +321,36 @@ const styles = StyleSheet.create({
     fontSize: 10,
     fontWeight: 'bold',
     color: Colors.background,
+  },
+  liveBadge: {
+    position: 'absolute',
+    top: 8,
+    left: 8,
+    backgroundColor: '#ff0000',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 4,
+  },
+  liveBadgeText: {
+    color: '#fff',
+    fontSize: 12,
+    fontWeight: 'bold',
+  },
+  viewerCount: {
+    position: 'absolute',
+    bottom: 6,
+    left: 6,
+    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+  },
+  viewerCountText: {
+    color: '#fff',
+    fontSize: 10,
+    fontWeight: '600',
   },
 });

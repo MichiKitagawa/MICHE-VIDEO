@@ -74,6 +74,64 @@ export default function UploadContent() {
             </View>
           </View>
         </TouchableOpacity>
+
+        {/* Netflix型コンテンツ */}
+        <TouchableOpacity
+          style={[styles.uploadCard, isMobile && styles.uploadCardMobile]}
+          onPress={() => router.push('/upload-netflix-movie')}
+        >
+          <View style={styles.uploadCardIconContainer}>
+            <Ionicons name="tv" size={64} color="#E50914" />
+          </View>
+          <Text style={styles.uploadCardTitle}>Netflix型コンテンツ</Text>
+          <Text style={styles.uploadCardDescription}>
+            映画・シリーズをアップロード{'\n'}
+            サブスク限定配信
+          </Text>
+          <View style={styles.uploadCardFeatures}>
+            <View style={styles.featureItem}>
+              <Ionicons name="checkmark-circle" size={16} color="#E50914" />
+              <Text style={styles.featureText}>映画・シリーズ</Text>
+            </View>
+            <View style={styles.featureItem}>
+              <Ionicons name="checkmark-circle" size={16} color="#E50914" />
+              <Text style={styles.featureText}>エピソード管理</Text>
+            </View>
+            <View style={styles.featureItem}>
+              <Ionicons name="checkmark-circle" size={16} color="#E50914" />
+              <Text style={styles.featureText}>サブスク設定</Text>
+            </View>
+          </View>
+        </TouchableOpacity>
+
+        {/* ライブ配信 */}
+        <TouchableOpacity
+          style={[styles.uploadCard, isMobile && styles.uploadCardMobile]}
+          onPress={() => router.push('/go-live')}
+        >
+          <View style={styles.uploadCardIconContainer}>
+            <Ionicons name="radio" size={64} color="#FF4444" />
+          </View>
+          <Text style={styles.uploadCardTitle}>ライブ配信</Text>
+          <Text style={styles.uploadCardDescription}>
+            リアルタイムでライブ配信{'\n'}
+            視聴者とリアルタイム交流
+          </Text>
+          <View style={styles.uploadCardFeatures}>
+            <View style={styles.featureItem}>
+              <Ionicons name="checkmark-circle" size={16} color="#FF4444" />
+              <Text style={styles.featureText}>リアルタイム配信</Text>
+            </View>
+            <View style={styles.featureItem}>
+              <Ionicons name="checkmark-circle" size={16} color="#FF4444" />
+              <Text style={styles.featureText}>チャット機能</Text>
+            </View>
+            <View style={styles.featureItem}>
+              <Ionicons name="checkmark-circle" size={16} color="#FF4444" />
+              <Text style={styles.featureText}>スーパーチャット</Text>
+            </View>
+          </View>
+        </TouchableOpacity>
       </View>
     </ScrollView>
   );
@@ -100,6 +158,7 @@ const styles = StyleSheet.create({
   },
   uploadCardsContainer: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
     gap: 24,
     justifyContent: 'center',
   },
@@ -107,7 +166,8 @@ const styles = StyleSheet.create({
     flexDirection: 'column',
   },
   uploadCard: {
-    flex: 1,
+    width: '48%',
+    minWidth: 320,
     maxWidth: 400,
     backgroundColor: Colors.surface,
     borderRadius: 16,

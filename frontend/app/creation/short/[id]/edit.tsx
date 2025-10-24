@@ -14,10 +14,13 @@ import {
   Image,
 } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
+import * as ImagePicker from 'expo-image-picker';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../../../../constants/Colors';
-import { getShorts, updateShort } from '../../../../utils/mockApi';
+import { getShorts, updateShort, updateShortThumbnail } from '../../../../utils/mockApi';
 import { Short } from '../../../../types';
+
+const CATEGORIES = ['ゲーム', '音楽', 'エンタメ', '教育', 'スポーツ', '科学技術', '料理', '旅行', 'ファッション', 'その他'];
 
 export default function ShortEditScreen() {
   const router = useRouter();
@@ -31,6 +34,10 @@ export default function ShortEditScreen() {
   const [description, setDescription] = useState('');
   const [category, setCategory] = useState('');
   const [isAdult, setIsAdult] = useState(false);
+  const [thumbnailUri, setThumbnailUri] = useState('');
+  const [privacy, setPrivacy] = useState<'public' | 'unlisted' | 'private'>('public');
+  const [tags, setTags] = useState<string[]>([]);
+  const [tagInput, setTagInput] = useState('');
 
   useEffect(() => {
     loadShort();
@@ -46,6 +53,9 @@ export default function ShortEditScreen() {
         setDescription(foundShort.description || '');
         setCategory(foundShort.category || '');
         setIsAdult(foundShort.is_adult);
+        setThumbnailUri(foundShort.thumbnail_url);
+        setPrivacy(foundShort.privacy || 'public');
+        setTags(foundShort.tags || []);
       } else {
         Alert.alert('エラー', 'ショートが見つかりません');
         router.back();
@@ -58,6 +68,47 @@ export default function ShortEditScreen() {
     }
   };
 
+  const pickThumbnail = async () => {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== 'granted') {
+      Alert.alert('エラー', 'ライブラリへのアクセス許可が必要です');
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ['images'],
+      allowsEditing: true,
+      aspect: [9, 16],
+      quality: 1,
+    });
+
+    if (!result.canceled && result.assets[0]) {
+      setThumbnailUri(result.assets[0].uri);
+    }
+  };
+
+  const addTag = () => {
+    const newTag = tagInput.trim();
+    if (!newTag) return;
+
+    if (tags.length >= 10) {
+      Alert.alert('エラー', 'タグは最大10個までです');
+      return;
+    }
+
+    if (tags.includes(newTag)) {
+      Alert.alert('エラー', 'このタグは既に追加されています');
+      return;
+    }
+
+    setTags([...tags, newTag]);
+    setTagInput('');
+  };
+
+  const removeTag = (index: number) => {
+    setTags(tags.filter((_, i) => i !== index));
+  };
+
   const handleSave = async () => {
     if (!title.trim()) {
       Alert.alert('エラー', 'タイトルを入力してください');
@@ -65,18 +116,27 @@ export default function ShortEditScreen() {
     }
 
     if (!category.trim()) {
-      Alert.alert('エラー', 'カテゴリーを入力してください');
+      Alert.alert('エラー', 'カテゴリーを選択してください');
       return;
     }
 
     setSaving(true);
     try {
+      // サムネイルが変更されていれば更新
+      if (thumbnailUri !== short?.thumbnail_url) {
+        await updateShortThumbnail(id as string, thumbnailUri);
+      }
+
+      // ショート情報を更新
       await updateShort(id as string, {
         title: title.trim(),
         description: description.trim(),
         category: category.trim(),
         is_adult: isAdult,
+        privacy,
+        tags,
       });
+
       Alert.alert('保存完了', 'ショート情報を更新しました', [
         {
           text: 'OK',
@@ -124,10 +184,17 @@ export default function ShortEditScreen() {
       </View>
 
       <ScrollView style={styles.scrollView} contentContainerStyle={styles.content}>
-        {/* サムネイルプレビュー */}
+        {/* サムネイル */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>サムネイル</Text>
-          <Image source={{ uri: short.thumbnail_url }} style={styles.thumbnail} />
+          <Text style={styles.sectionTitle}>サムネイル *</Text>
+          <TouchableOpacity style={styles.thumbnailPicker} onPress={pickThumbnail}>
+            <Image source={{ uri: thumbnailUri }} style={styles.thumbnail} />
+            <View style={styles.thumbnailOverlay}>
+              <Ionicons name="camera" size={32} color="#fff" />
+              <Text style={styles.thumbnailOverlayText}>変更</Text>
+            </View>
+          </TouchableOpacity>
+          <Text style={styles.hint}>推奨: 1080x1920 (9:16) • JPGまたはPNG • 2MB以下</Text>
         </View>
 
         {/* タイトル */}
@@ -160,25 +227,120 @@ export default function ShortEditScreen() {
         {/* カテゴリー */}
         <View style={styles.section}>
           <Text style={styles.label}>カテゴリー *</Text>
+          <View style={styles.categoryContainer}>
+            {CATEGORIES.map((cat) => (
+              <TouchableOpacity
+                key={cat}
+                style={[
+                  styles.categoryChip,
+                  category === cat && styles.categoryChipSelected,
+                ]}
+                onPress={() => setCategory(cat)}
+              >
+                <Text
+                  style={[
+                    styles.categoryChipText,
+                    category === cat && styles.categoryChipTextSelected,
+                  ]}
+                >
+                  {cat}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </View>
+
+        {/* タグ */}
+        <View style={styles.section}>
+          <Text style={styles.label}>タグ (最大10個)</Text>
+          {tags.length > 0 && (
+            <View style={styles.tagContainer}>
+              {tags.map((tag, index) => (
+                <View key={index} style={styles.tagChip}>
+                  <Text style={styles.tagChipText}>{tag}</Text>
+                  <TouchableOpacity onPress={() => removeTag(index)}>
+                    <Ionicons name="close-circle" size={16} color={Colors.textSecondary} />
+                  </TouchableOpacity>
+                </View>
+              ))}
+            </View>
+          )}
           <TextInput
             style={styles.input}
-            value={category}
-            onChangeText={setCategory}
-            placeholder="カテゴリーを入力"
+            value={tagInput}
+            onChangeText={setTagInput}
+            placeholder="タグを入力してEnter"
             placeholderTextColor={Colors.textSecondary}
+            onSubmitEditing={addTag}
+            returnKeyType="done"
           />
+        </View>
+
+        {/* プライバシー設定 */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>プライバシー設定</Text>
+
+          <TouchableOpacity
+            style={[styles.privacyOption, privacy === 'public' && styles.privacyOptionActive]}
+            onPress={() => setPrivacy('public')}
+          >
+            <Ionicons
+              name={privacy === 'public' ? 'radio-button-on' : 'radio-button-off'}
+              size={24}
+              color={privacy === 'public' ? Colors.primary : Colors.textSecondary}
+            />
+            <View style={styles.privacyOptionText}>
+              <Text style={styles.privacyOptionTitle}>公開</Text>
+              <Text style={styles.privacyOptionDescription}>誰でも視聴可能</Text>
+            </View>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.privacyOption, privacy === 'unlisted' && styles.privacyOptionActive]}
+            onPress={() => setPrivacy('unlisted')}
+          >
+            <Ionicons
+              name={privacy === 'unlisted' ? 'radio-button-on' : 'radio-button-off'}
+              size={24}
+              color={privacy === 'unlisted' ? Colors.primary : Colors.textSecondary}
+            />
+            <View style={styles.privacyOptionText}>
+              <Text style={styles.privacyOptionTitle}>限定公開</Text>
+              <Text style={styles.privacyOptionDescription}>URLを知っている人のみ</Text>
+            </View>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.privacyOption, privacy === 'private' && styles.privacyOptionActive]}
+            onPress={() => setPrivacy('private')}
+          >
+            <Ionicons
+              name={privacy === 'private' ? 'radio-button-on' : 'radio-button-off'}
+              size={24}
+              color={privacy === 'private' ? Colors.primary : Colors.textSecondary}
+            />
+            <View style={styles.privacyOptionText}>
+              <Text style={styles.privacyOptionTitle}>非公開</Text>
+              <Text style={styles.privacyOptionDescription}>自分のみ視聴可能</Text>
+            </View>
+          </TouchableOpacity>
         </View>
 
         {/* 成人向けコンテンツ */}
         <View style={styles.section}>
           <View style={styles.switchRow}>
             <View style={styles.switchInfo}>
-              <Text style={styles.label}>成人向けコンテンツ</Text>
+              <Text style={styles.label}>成人向けコンテンツ (18+)</Text>
               <Text style={styles.switchDescription}>
-                18歳以上のユーザーのみが視聴できます
+                Web版でのみ視聴可能
               </Text>
             </View>
-            <Switch value={isAdult} onValueChange={setIsAdult} />
+            <Switch
+              value={isAdult}
+              onValueChange={setIsAdult}
+              trackColor={{ false: Colors.border, true: Colors.primary }}
+              thumbColor={isAdult ? '#fff' : '#f4f3f4'}
+            />
           </View>
         </View>
 
@@ -243,23 +405,50 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   sectionTitle: {
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: '600',
     color: Colors.text,
-    marginBottom: 12,
-  },
-  thumbnail: {
-    width: 200,
-    aspectRatio: 9 / 16,
-    borderRadius: 12,
-    backgroundColor: Colors.border,
-    alignSelf: 'center',
+    marginBottom: 16,
   },
   label: {
     fontSize: 14,
     fontWeight: '600',
     color: Colors.text,
     marginBottom: 8,
+  },
+  hint: {
+    fontSize: 12,
+    color: Colors.textSecondary,
+    marginTop: 8,
+  },
+  thumbnailPicker: {
+    width: 200,
+    aspectRatio: 9 / 16,
+    borderRadius: 12,
+    overflow: 'hidden',
+    position: 'relative',
+    alignSelf: 'center',
+  },
+  thumbnail: {
+    width: '100%',
+    height: '100%',
+    backgroundColor: Colors.border,
+  },
+  thumbnailOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 8,
+  },
+  thumbnailOverlayText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
   },
   input: {
     backgroundColor: Colors.surface,
@@ -274,6 +463,78 @@ const styles = StyleSheet.create({
   textArea: {
     minHeight: 120,
     paddingTop: 12,
+  },
+  categoryContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  categoryChip: {
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    backgroundColor: Colors.surface,
+  },
+  categoryChipSelected: {
+    backgroundColor: Colors.primary,
+    borderColor: Colors.primary,
+  },
+  categoryChipText: {
+    fontSize: 14,
+    color: Colors.text,
+  },
+  categoryChipTextSelected: {
+    color: '#fff',
+  },
+  tagContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    marginBottom: 12,
+  },
+  tagChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderRadius: 16,
+    backgroundColor: Colors.primary + '20',
+  },
+  tagChipText: {
+    fontSize: 14,
+    color: Colors.primary,
+    fontWeight: '500',
+  },
+  privacyOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    padding: 12,
+    backgroundColor: Colors.surface,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    marginBottom: 12,
+  },
+  privacyOptionActive: {
+    borderColor: Colors.primary,
+    backgroundColor: Colors.primary + '10',
+  },
+  privacyOptionText: {
+    flex: 1,
+  },
+  privacyOptionTitle: {
+    fontSize: 15,
+    fontWeight: '500',
+    color: Colors.text,
+    marginBottom: 2,
+  },
+  privacyOptionDescription: {
+    fontSize: 13,
+    color: Colors.textSecondary,
   },
   switchRow: {
     flexDirection: 'row',

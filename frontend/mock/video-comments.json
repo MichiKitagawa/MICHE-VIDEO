@@ -1,0 +1,32 @@
+[
+  {
+    "id": "comment_1",
+    "video_id": "video_1",
+    "user_id": "user_2",
+    "user_name": "田中太郎",
+    "user_avatar": "https://i.pravatar.cc/150?u=user2",
+    "content": "素晴らしい動画でした！とても参考になりました。",
+    "like_count": 42,
+    "created_at": "2024-01-15T10:30:00Z"
+  },
+  {
+    "id": "comment_2",
+    "video_id": "video_1",
+    "user_id": "user_3",
+    "user_name": "佐藤花子",
+    "user_avatar": "https://i.pravatar.cc/150?u=user3",
+    "content": "この解説がわかりやすくて助かりました！",
+    "like_count": 28,
+    "created_at": "2024-01-15T12:45:00Z"
+  },
+  {
+    "id": "comment_3",
+    "video_id": "video_1",
+    "user_id": "user_4",
+    "user_name": "鈴木一郎",
+    "user_avatar": "https://i.pravatar.cc/150?u=user4",
+    "content": "次回作も楽しみにしています！",
+    "like_count": 15,
+    "created_at": "2024-01-16T08:20:00Z"
+  }
+]

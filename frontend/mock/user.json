@@ -2,5 +2,6 @@
   "id": "user123",
   "name": "テストユーザー",
   "email": "test@miche.video",
-  "avatar_url": "https://picsum.photos/100/100?random=999"
+  "avatar_url": "https://picsum.photos/100/100?random=999",
+  "bio": "最新のテクノロジーやガジェットについて分かりやすく解説します。週3回更新、登録者12万人突破！"
 }

@@ -1,0 +1,170 @@
+{
+  "overview": {
+    "period": "last_30_days",
+    "total_views": 1523420,
+    "total_watch_time_hours": 45678,
+    "avg_view_duration_seconds": 420,
+    "subscribers_gained": 1234,
+    "total_likes": 23456,
+    "views_change_percent": 15.2,
+    "watch_time_change_percent": 12.8,
+    "subscribers_change_percent": 8.5,
+    "likes_change_percent": 11.3
+  },
+  "views_timeline": [
+    { "date": "2025-09-23", "views": 45000 },
+    { "date": "2025-09-24", "views": 48000 },
+    { "date": "2025-09-25", "views": 52000 },
+    { "date": "2025-09-26", "views": 49000 },
+    { "date": "2025-09-27", "views": 51000 },
+    { "date": "2025-09-28", "views": 47000 },
+    { "date": "2025-09-29", "views": 50000 },
+    { "date": "2025-09-30", "views": 53000 },
+    { "date": "2025-10-01", "views": 55000 },
+    { "date": "2025-10-02", "views": 52000 },
+    { "date": "2025-10-03", "views": 54000 },
+    { "date": "2025-10-04", "views": 51000 },
+    { "date": "2025-10-05", "views": 49000 },
+    { "date": "2025-10-06", "views": 48000 },
+    { "date": "2025-10-07", "views": 50000 },
+    { "date": "2025-10-08", "views": 52000 },
+    { "date": "2025-10-09", "views": 54000 },
+    { "date": "2025-10-10", "views": 56000 },
+    { "date": "2025-10-11", "views": 55000 },
+    { "date": "2025-10-12", "views": 53000 },
+    { "date": "2025-10-13", "views": 51000 },
+    { "date": "2025-10-14", "views": 49000 },
+    { "date": "2025-10-15", "views": 52000 },
+    { "date": "2025-10-16", "views": 54000 },
+    { "date": "2025-10-17", "views": 57000 },
+    { "date": "2025-10-18", "views": 59000 },
+    { "date": "2025-10-19", "views": 58000 },
+    { "date": "2025-10-20", "views": 60000 },
+    { "date": "2025-10-21", "views": 62000 },
+    { "date": "2025-10-22", "views": 61000 }
+  ],
+  "performance_by_content": [
+    {
+      "id": "video1",
+      "type": "video",
+      "title": "最新のAI技術解説 - ChatGPT完全ガイド",
+      "thumbnail_url": "https://picsum.photos/320/180?random=1",
+      "published_at": "2025-10-20T10:00:00Z",
+      "views": 152340,
+      "watch_time_hours": 4567,
+      "ctr": 12.3,
+      "avg_view_duration": 423,
+      "likes": 2345,
+      "comments": 123,
+      "is_adult": false
+    },
+    {
+      "id": "video2",
+      "type": "video",
+      "title": "プログラミング初心者必見！Python入門",
+      "thumbnail_url": "https://picsum.photos/320/180?random=2",
+      "published_at": "2025-10-18T15:30:00Z",
+      "views": 98750,
+      "watch_time_hours": 3210,
+      "ctr": 10.8,
+      "avg_view_duration": 385,
+      "likes": 1876,
+      "comments": 87,
+      "is_adult": false
+    },
+    {
+      "id": "video3",
+      "type": "video",
+      "title": "スマホ最新機種レビュー 2025",
+      "thumbnail_url": "https://picsum.photos/320/180?random=3",
+      "published_at": "2025-10-15T12:00:00Z",
+      "views": 87420,
+      "watch_time_hours": 2890,
+      "ctr": 9.5,
+      "avg_view_duration": 398,
+      "likes": 1654,
+      "comments": 92,
+      "is_adult": false
+    },
+    {
+      "id": "short1",
+      "type": "short",
+      "title": "60秒で分かる！量子コンピュータ",
+      "thumbnail_url": "https://picsum.photos/180/320?random=11",
+      "published_at": "2025-10-19T18:00:00Z",
+      "views": 234500,
+      "watch_time_hours": 1958,
+      "ctr": 15.2,
+      "avg_view_duration": 48,
+      "likes": 4567,
+      "comments": 234,
+      "is_adult": false
+    },
+    {
+      "id": "short2",
+      "type": "short",
+      "title": "超簡単！コーディングTips",
+      "thumbnail_url": "https://picsum.photos/180/320?random=12",
+      "published_at": "2025-10-17T20:00:00Z",
+      "views": 189300,
+      "watch_time_hours": 1577,
+      "ctr": 14.1,
+      "avg_view_duration": 52,
+      "likes": 3782,
+      "comments": 156,
+      "is_adult": false
+    }
+  ],
+  "audience": {
+    "age_distribution": {
+      "13-17": 5,
+      "18-24": 25,
+      "25-34": 35,
+      "35-44": 20,
+      "45-54": 10,
+      "55+": 5
+    },
+    "gender_distribution": {
+      "male": 60,
+      "female": 38,
+      "other": 2
+    },
+    "top_regions": [
+      { "country": "JP", "name": "日本", "percentage": 45 },
+      { "country": "US", "name": "アメリカ", "percentage": 20 },
+      { "country": "KR", "name": "韓国", "percentage": 10 },
+      { "country": "CN", "name": "中国", "percentage": 8 },
+      { "country": "TW", "name": "台湾", "percentage": 6 },
+      { "country": "UK", "name": "イギリス", "percentage": 5 },
+      { "country": "CA", "name": "カナダ", "percentage": 3 },
+      { "country": "AU", "name": "オーストラリア", "percentage": 3 }
+    ],
+    "devices": {
+      "mobile": 65,
+      "desktop": 25,
+      "tablet": 8,
+      "tv": 2
+    },
+    "active_hours": {
+      "0": 5, "1": 3, "2": 2, "3": 1, "4": 1, "5": 2,
+      "6": 5, "7": 8, "8": 10, "9": 12, "10": 14, "11": 15,
+      "12": 16, "13": 15, "14": 14, "15": 13, "16": 12, "17": 11,
+      "18": 13, "19": 15, "20": 18, "21": 20, "22": 17, "23": 12
+    }
+  },
+  "traffic_sources": {
+    "search": 30,
+    "suggested": 40,
+    "external": 15,
+    "direct": 10,
+    "channel_page": 5
+  },
+  "engagement": {
+    "like_rate": 8.5,
+    "comment_rate": 1.2,
+    "share_count": 1234,
+    "save_count": 567,
+    "subscription_rate": 2.3,
+    "avg_watch_percentage": 68.5
+  }
+}

@@ -194,5 +194,21 @@
     "category": "スポーツ",
     "rating": 4.7,
     "is_adult": false
+  },
+  {
+    "id": "live_1",
+    "title": "ライブ配信：質問コーナー",
+    "thumbnail_url": "https://picsum.photos/320/180?random=live1",
+    "user_id": "ch004",
+    "user_name": "LiveStreamer",
+    "user_avatar": "https://picsum.photos/40/40?random=112",
+    "view_count": 8700,
+    "created_at": "2025-10-24T20:00:00Z",
+    "duration": 0,
+    "category": "ライブ",
+    "rating": 4.5,
+    "is_adult": false,
+    "status": "live",
+    "current_viewers": 1234
   }
 ]

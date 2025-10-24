@@ -1,0 +1,40 @@
+[
+  {
+    "id": "chat_1",
+    "user_id": "user_2",
+    "user_name": "田中太郎",
+    "user_avatar": "https://i.pravatar.cc/150?u=user2",
+    "message": "こんにちは！",
+    "is_super_chat": false,
+    "timestamp": "2024-01-20T14:30:15Z"
+  },
+  {
+    "id": "chat_2",
+    "user_id": "user_3",
+    "user_name": "佐藤花子",
+    "user_avatar": "https://i.pravatar.cc/150?u=user3",
+    "message": "応援しています！",
+    "is_super_chat": true,
+    "super_chat_amount": 500,
+    "timestamp": "2024-01-20T14:31:00Z"
+  },
+  {
+    "id": "chat_3",
+    "user_id": "user_4",
+    "user_name": "鈴木一郎",
+    "user_avatar": "https://i.pravatar.cc/150?u=user4",
+    "message": "最高の配信です！",
+    "is_super_chat": false,
+    "timestamp": "2024-01-20T14:31:30Z"
+  },
+  {
+    "id": "chat_4",
+    "user_id": "user_5",
+    "user_name": "高橋美咲",
+    "user_avatar": "https://i.pravatar.cc/150?u=user5",
+    "message": "いつも見てます！これからも頑張ってください！",
+    "is_super_chat": true,
+    "super_chat_amount": 1000,
+    "timestamp": "2024-01-20T14:32:00Z"
+  }
+]

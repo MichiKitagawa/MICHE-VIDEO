@@ -10,11 +10,13 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   useWindowDimensions,
+  Alert,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import VideoCard from '../../components/VideoCard';
-import { ChannelDetail } from '../../types';
+import ActionSheet from '../../components/ActionSheet';
+import { ChannelDetail, Video } from '../../types';
 import { getChannelDetail } from '../../utils/mockApi';
 import { Colors } from '../../constants/Colors';
 
@@ -27,6 +29,10 @@ export default function ChannelScreen() {
   const [loading, setLoading] = useState(true);
   const [subscribed, setSubscribed] = useState(false);
   const [activeTab, setActiveTab] = useState<'videos' | 'shorts'>('videos');
+
+  // ActionSheet状態
+  const [actionSheetVisible, setActionSheetVisible] = useState(false);
+  const [selectedVideo, setSelectedVideo] = useState<Video | null>(null);
 
   const isMobile = width < 768;
 
@@ -51,6 +57,26 @@ export default function ChannelScreen() {
 
   const handleVideoPress = (videoId: string) => {
     router.push(`/video/${videoId}`);
+  };
+
+  const handleMorePress = (video: Video) => {
+    setSelectedVideo(video);
+    setActionSheetVisible(true);
+  };
+
+  const handleShare = () => {
+    Alert.alert('共有', 'この機能は開発中です');
+  };
+
+  const handleSaveForLater = () => {
+    Alert.alert('後で見る', '後で見るリストに追加しました');
+  };
+
+  const handleReport = () => {
+    Alert.alert('報告', 'この動画を報告しますか？', [
+      { text: 'キャンセル', style: 'cancel' },
+      { text: '報告', style: 'destructive', onPress: () => Alert.alert('報告完了', '報告を受け付けました') },
+    ]);
   };
 
   const formatSubscriberCount = (count: number): string => {
@@ -165,6 +191,7 @@ export default function ChannelScreen() {
                     key={video.id}
                     video={video}
                     onPress={() => handleVideoPress(video.id)}
+                    onMorePress={handleMorePress}
                     layout="grid"
                   />
                 ))
@@ -183,6 +210,18 @@ export default function ChannelScreen() {
           )}
         </View>
       </ScrollView>
+
+      {/* ActionSheet */}
+      <ActionSheet
+        visible={actionSheetVisible}
+        onClose={() => setActionSheetVisible(false)}
+        title={selectedVideo?.title}
+        actions={[
+          { label: '共有', icon: 'share-outline', onPress: handleShare },
+          { label: '後で見る', icon: 'bookmark-outline', onPress: handleSaveForLater },
+          { label: '報告', icon: 'flag-outline', onPress: handleReport, destructive: true },
+        ]}
+      />
     </View>
   );
 }
