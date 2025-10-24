@@ -1,6 +1,6 @@
 // ショート画面（TikTok/YouTubeショート風）
 
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useMemo } from 'react';
 import {
   View,
   FlatList,
@@ -20,8 +20,9 @@ import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import ShortVideoPlayer from '../../components/ShortVideoPlayer';
 import ActionSheet from '../../components/ActionSheet';
-import { Short, Comment } from '../../types';
-import { getShorts, getVideoComments, postComment, likeComment } from '../../utils/mockApi';
+import { Short, Comment, SubscriptionPlan } from '../../types';
+import { getShorts, getVideoComments, postComment, likeComment, getCurrentSubscriptionPlan } from '../../utils/mockApi';
+import { filterContentByPlan } from '../../utils/contentAccess';
 import { Colors } from '../../constants/Colors';
 
 const TAB_BAR_HEIGHT = 60;
@@ -46,6 +47,7 @@ export default function ShortsScreen() {
   const { height } = useWindowDimensions();
   const [shorts, setShorts] = useState<Short[]>([]);
   const [loading, setLoading] = useState(true);
+  const [currentPlan, setCurrentPlan] = useState<SubscriptionPlan | null>(null);
   const [activeShortId, setActiveShortId] = useState<string | null>(null);
 
   // ActionSheet状態
@@ -68,8 +70,12 @@ export default function ShortsScreen() {
 
   const loadShorts = async () => {
     try {
-      const data = await getShorts();
-      setShorts(data);
+      const [shortsData, planData] = await Promise.all([
+        getShorts(),
+        getCurrentSubscriptionPlan(),
+      ]);
+      setShorts(shortsData);
+      setCurrentPlan(planData);
     } catch (error) {
       console.error('Failed to load shorts:', error);
     } finally {
@@ -77,12 +83,18 @@ export default function ShortsScreen() {
     }
   };
 
+  // プランによるフィルタリング
+  const filteredShorts = useMemo(() => {
+    if (!currentPlan) return shorts;
+    return filterContentByPlan(shorts, currentPlan);
+  }, [shorts, currentPlan]);
+
   // 初回ロード時に最初の動画をアクティブに設定
   useEffect(() => {
-    if (shorts.length > 0 && !activeShortId) {
-      setActiveShortId(shorts[0].id);
+    if (filteredShorts.length > 0 && !activeShortId) {
+      setActiveShortId(filteredShorts[0].id);
     }
-  }, [shorts]);
+  }, [filteredShorts]);
 
   // 表示中のアイテムが変わったときのハンドラー
   const onViewableItemsChanged = useRef(({ viewableItems }: any) => {
@@ -184,7 +196,7 @@ export default function ShortsScreen() {
   return (
     <View style={styles.container}>
       <FlatList
-        data={shorts}
+        data={filteredShorts}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
           <ShortVideoPlayer

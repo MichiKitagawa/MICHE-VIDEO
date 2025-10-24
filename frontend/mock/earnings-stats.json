@@ -1,0 +1,10 @@
+{
+  "available_balance": 45280,
+  "pending_balance": 12340,
+  "this_month_earnings": 23450,
+  "total_withdrawn": 156000,
+  "breakdown": {
+    "tips": 14620,
+    "subscription_pool": 43000
+  }
+}

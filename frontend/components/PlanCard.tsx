@@ -16,10 +16,24 @@ export default function PlanCard({ plan, onUpgrade }: PlanCardProps) {
   const isMobile = width < 768;
 
   const getPlanColor = () => {
-    if (plan.id === 'free') return '#9E9E9E';
-    if (plan.id === 'premium') return Colors.primary;
-    if (plan.id === 'business') return '#FFB300';
+    if (plan.id.includes('free')) return '#9E9E9E';
+    if (plan.id.includes('premium_plus')) return '#FFB300';
+    if (plan.id.includes('premium')) return Colors.primary;
     return Colors.primary;
+  };
+
+  const getPaymentProviderLabel = () => {
+    if (!plan.payment_provider) return null;
+    switch (plan.payment_provider) {
+      case 'stripe':
+        return 'Stripe';
+      case 'ccbill':
+        return 'CCBill';
+      case 'epoch':
+        return 'Epoch';
+      default:
+        return plan.payment_provider.toUpperCase();
+    }
   };
 
   const planColor = getPlanColor();
@@ -49,6 +63,16 @@ export default function PlanCard({ plan, onUpgrade }: PlanCardProps) {
           </View>
         ))}
       </View>
+
+      {/* 決済プロバイダー表示 */}
+      {plan.payment_provider && (
+        <View style={styles.providerInfo}>
+          <Ionicons name="card-outline" size={16} color={Colors.textSecondary} />
+          <Text style={styles.providerText}>
+            決済: {getPaymentProviderLabel()}
+          </Text>
+        </View>
+      )}
 
       {!plan.is_current && (
         <TouchableOpacity
@@ -193,5 +217,20 @@ const styles = StyleSheet.create({
   currentLabelText: {
     fontSize: 16,
     fontWeight: '700',
+  },
+  providerInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    backgroundColor: Colors.surface,
+    borderRadius: 6,
+    marginBottom: 16,
+  },
+  providerText: {
+    fontSize: 13,
+    color: Colors.textSecondary,
+    fontWeight: '500',
   },
 });

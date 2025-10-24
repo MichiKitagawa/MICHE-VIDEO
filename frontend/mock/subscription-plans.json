@@ -1,46 +1,56 @@
 [
   {
-    "id": "free",
-    "name": "無料プラン",
+    "id": "plan_free",
+    "name": "フリープラン",
     "price": 0,
     "features": [
-      "広告付き動画視聴",
-      "標準画質（480p）",
-      "シングルデバイス",
-      "基本的なコンテンツ閲覧"
+      "基本的な動画視聴",
+      "広告あり",
+      "標準画質"
     ],
     "is_current": true,
-    "billing_cycle": "monthly"
+    "billing_cycle": "monthly",
+    "has_netflix_access": false,
+    "has_ads": true,
+    "has_adult_access": false,
+    "payment_provider": null
   },
   {
-    "id": "premium",
+    "id": "plan_premium",
     "name": "プレミアムプラン",
     "price": 980,
     "features": [
-      "広告なし動画視聴",
-      "フルHD画質（1080p）",
-      "3デバイスまで同時視聴",
-      "オフラインダウンロード",
-      "限定コンテンツ閲覧",
-      "早期アクセス"
+      "Netflix型コンテンツ視聴",
+      "広告なし",
+      "高画質配信（1080p）",
+      "オフライン視聴",
+      "複数デバイス同時視聴（2台まで）"
     ],
     "is_current": false,
-    "billing_cycle": "monthly"
+    "billing_cycle": "monthly",
+    "has_netflix_access": true,
+    "has_ads": false,
+    "has_adult_access": false,
+    "payment_provider": "stripe"
   },
   {
-    "id": "business",
-    "name": "ビジネスプラン",
-    "price": 2980,
+    "id": "plan_premium_plus",
+    "name": "プレミアム+プラン",
+    "price": 1980,
     "features": [
-      "プレミアムプランの全機能",
-      "4K画質対応",
-      "5デバイスまで同時視聴",
-      "法人向け管理機能",
-      "優先サポート",
-      "IPライセンス商用利用",
-      "分析ダッシュボード"
+      "Netflix型コンテンツ視聴",
+      "広告なし",
+      "最高画質配信（4K）",
+      "オフライン視聴",
+      "複数デバイス同時視聴（4台まで）",
+      "全コンテンツへのアクセス（18+含む）",
+      "優先サポート"
     ],
     "is_current": false,
-    "billing_cycle": "monthly"
+    "billing_cycle": "monthly",
+    "has_netflix_access": true,
+    "has_ads": false,
+    "has_adult_access": true,
+    "payment_provider": "ccbill"
   }
 ]

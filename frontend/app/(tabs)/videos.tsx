@@ -7,8 +7,9 @@ import Header from '../../components/Header';
 import CategoryChipsBar from '../../components/CategoryChipsBar';
 import VideoCard from '../../components/VideoCard';
 import ActionSheet from '../../components/ActionSheet';
-import { Video } from '../../types';
-import { getVideos } from '../../utils/mockApi';
+import { Video, SubscriptionPlan } from '../../types';
+import { getVideos, getCurrentSubscriptionPlan } from '../../utils/mockApi';
+import { filterContentByPlan } from '../../utils/contentAccess';
 import { Colors } from '../../constants/Colors';
 
 type SortType = 'relevance' | 'upload_date' | 'view_count' | 'rating';
@@ -18,6 +19,7 @@ export default function VideosScreen() {
   const { width } = useWindowDimensions();
   const [videos, setVideos] = useState<Video[]>([]);
   const [loading, setLoading] = useState(true);
+  const [currentPlan, setCurrentPlan] = useState<SubscriptionPlan | null>(null);
 
   // フィルター・ソート状態
   const [activeCategory, setActiveCategory] = useState('すべて');
@@ -40,8 +42,12 @@ export default function VideosScreen() {
 
   const loadVideos = async () => {
     try {
-      const data = await getVideos();
-      setVideos(data);
+      const [videosData, planData] = await Promise.all([
+        getVideos(),
+        getCurrentSubscriptionPlan(),
+      ]);
+      setVideos(videosData);
+      setCurrentPlan(planData);
     } catch (error) {
       console.error('Failed to load videos:', error);
     } finally {
@@ -85,6 +91,11 @@ export default function VideosScreen() {
   const filteredAndSortedVideos = useMemo(() => {
     let result = [...videos];
 
+    // プランによるアダルトコンテンツフィルタリング
+    if (currentPlan) {
+      result = filterContentByPlan(result, currentPlan);
+    }
+
     // 検索フィルター
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
@@ -125,7 +136,7 @@ export default function VideosScreen() {
     }
 
     return result;
-  }, [videos, activeCategory, sortBy, searchQuery]);
+  }, [videos, currentPlan, activeCategory, sortBy, searchQuery]);
 
   // レスポンシブ対応：グリッド列数を計算
   const numColumns = useMemo(() => {

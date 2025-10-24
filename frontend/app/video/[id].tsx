@@ -16,8 +16,10 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import VideoPlayer from '../../components/VideoPlayer';
 import ActionSheet from '../../components/ActionSheet';
-import { VideoDetail, Comment } from '../../types';
-import { getVideoDetail, getVideoComments, postComment, likeComment, saveContentForLater, reportContent } from '../../utils/mockApi';
+import TipModal from '../../components/TipModal';
+import { VideoDetail, Comment, SubscriptionPlan } from '../../types';
+import { getVideoDetail, getVideoComments, postComment, likeComment, saveContentForLater, reportContent, getCurrentSubscriptionPlan } from '../../utils/mockApi';
+import { canAccessContent, needsPlanUpgrade } from '../../utils/contentAccess';
 import { Colors } from '../../constants/Colors';
 
 export default function VideoDetailScreen() {
@@ -25,6 +27,7 @@ export default function VideoDetailScreen() {
   const router = useRouter();
   const [video, setVideo] = useState<VideoDetail | null>(null);
   const [loading, setLoading] = useState(true);
+  const [currentPlan, setCurrentPlan] = useState<SubscriptionPlan | null>(null);
   const [descriptionExpanded, setDescriptionExpanded] = useState(false);
 
   // コメント関連
@@ -35,6 +38,9 @@ export default function VideoDetailScreen() {
   // アクションシート
   const [actionSheetVisible, setActionSheetVisible] = useState(false);
 
+  // 投げ銭モーダル
+  const [tipModalVisible, setTipModalVisible] = useState(false);
+
   useEffect(() => {
     loadVideo();
     loadComments();
@@ -42,8 +48,12 @@ export default function VideoDetailScreen() {
 
   const loadVideo = async () => {
     try {
-      const data = await getVideoDetail(id);
-      setVideo(data);
+      const [videoData, planData] = await Promise.all([
+        getVideoDetail(id),
+        getCurrentSubscriptionPlan(),
+      ]);
+      setVideo(videoData);
+      setCurrentPlan(planData);
     } catch (error) {
       console.error('Failed to load video:', error);
     } finally {
@@ -173,6 +183,44 @@ export default function VideoDetailScreen() {
     );
   }
 
+  // アクセス権チェック
+  if (currentPlan) {
+    const accessCheck = canAccessContent(video, currentPlan);
+    if (!accessCheck.canAccess) {
+      const upgradeCheck = needsPlanUpgrade(video, currentPlan);
+      return (
+        <View style={styles.container}>
+          {/* トップバー */}
+          <View style={styles.topBar}>
+            <TouchableOpacity onPress={() => router.back()} style={styles.backIcon}>
+              <Ionicons name="chevron-back" size={28} color={Colors.text} />
+            </TouchableOpacity>
+          </View>
+
+          {/* アクセス制限画面 */}
+          <View style={styles.restrictedContainer}>
+            <Ionicons name="lock-closed" size={64} color={Colors.textSecondary} />
+            <Text style={styles.restrictedTitle}>このコンテンツは制限されています</Text>
+            <Text style={styles.restrictedDescription}>{accessCheck.reason}</Text>
+            {upgradeCheck.needsUpgrade && (
+              <>
+                <Text style={styles.upgradeInfo}>
+                  {upgradeCheck.requiredPlan === 'premium_plus' ? 'プレミアム+プラン' : 'プレミアムプラン'}が必要です
+                </Text>
+                <TouchableOpacity
+                  style={styles.upgradeButton}
+                  onPress={() => router.push('/(tabs)/settings' as any)}
+                >
+                  <Text style={styles.upgradeButtonText}>プランを見る</Text>
+                </TouchableOpacity>
+              </>
+            )}
+          </View>
+        </View>
+      );
+    }
+  }
+
   return (
     <View style={styles.container}>
       {/* トップバー */}
@@ -224,6 +272,10 @@ export default function VideoDetailScreen() {
           <TouchableOpacity style={styles.actionButton} onPress={handleShare}>
             <Ionicons name="share-outline" size={20} color={Colors.text} />
             <Text style={styles.actionText}>シェア</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.actionButton} onPress={() => setTipModalVisible(true)}>
+            <Ionicons name="gift-outline" size={20} color={Colors.primary} />
+            <Text style={[styles.actionText, { color: Colors.primary }]}>投げ銭</Text>
           </TouchableOpacity>
         </View>
 
@@ -348,6 +400,17 @@ export default function VideoDetailScreen() {
           },
         ]}
       />
+
+      {/* 投げ銭モーダル */}
+      <TipModal
+        visible={tipModalVisible}
+        onClose={() => setTipModalVisible(false)}
+        contentId={video.id}
+        contentType="video"
+        contentTitle={video.title}
+        creatorName={video.user_name}
+        isAdultContent={video.is_adult}
+      />
     </View>
   );
 }
@@ -400,6 +463,44 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   backButtonText: {
+    color: Colors.background,
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  restrictedContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 32,
+  },
+  restrictedTitle: {
+    fontSize: 20,
+    fontWeight: '600',
+    color: Colors.text,
+    textAlign: 'center',
+    marginTop: 24,
+    marginBottom: 12,
+  },
+  restrictedDescription: {
+    fontSize: 15,
+    color: Colors.textSecondary,
+    textAlign: 'center',
+    lineHeight: 22,
+    marginBottom: 16,
+  },
+  upgradeInfo: {
+    fontSize: 14,
+    color: Colors.text,
+    fontWeight: '600',
+    marginBottom: 24,
+  },
+  upgradeButton: {
+    backgroundColor: Colors.primary,
+    paddingHorizontal: 32,
+    paddingVertical: 14,
+    borderRadius: 8,
+  },
+  upgradeButtonText: {
     color: Colors.background,
     fontSize: 16,
     fontWeight: '600',

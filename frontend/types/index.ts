@@ -83,6 +83,84 @@ export interface SubscriptionPlan {
   is_current: boolean; // 現在のプラン
   billing_cycle: 'monthly' | 'yearly';
   next_billing_date?: string; // 次回請求日
+  has_netflix_access: boolean; // Netflix型コンテンツ視聴可否
+  has_ads: boolean; // 広告の有無
+  has_adult_access: boolean; // アダルトコンテンツへのアクセス可否
+  payment_provider: 'stripe' | 'ccbill' | 'epoch' | null; // 決済プロバイダー
+}
+
+// 請求履歴
+export interface BillingHistory {
+  id: string;
+  date: string;
+  amount: number;
+  plan_name: string;
+  payment_method: string;
+  status: 'paid' | 'pending' | 'failed';
+  invoice_url?: string;
+}
+
+// 支払い方法
+export interface PaymentMethod {
+  id: string;
+  type: 'credit_card' | 'paypal' | 'bank_transfer';
+  last_four?: string;
+  brand?: string; // 'Visa', 'Mastercard', etc.
+  is_default: boolean;
+  expires_at?: string;
+}
+
+// 収益統計
+export interface EarningsStats {
+  available_balance: number;      // 出金可能残高
+  pending_balance: number;        // 保留中残高
+  this_month_earnings: number;    // 今月の収益
+  total_withdrawn: number;        // 累計出金額
+  breakdown: {
+    tips: number;                 // 投げ銭
+    subscription_pool: number;    // サブスク分配プール
+  };
+}
+
+// 出金方法
+export interface WithdrawalMethod {
+  id: string;
+  type: 'bank_transfer' | 'paypal' | 'other';
+  bank_name?: string;
+  branch_name?: string;
+  account_type?: 'checking' | 'savings';
+  account_number?: string;  // マスク表示用
+  account_holder?: string;
+  paypal_email?: string;
+  is_verified: boolean;
+  is_default: boolean;
+  created_at: string;
+}
+
+// 出金申請
+export interface WithdrawalRequest {
+  id: string;
+  amount: number;
+  method_id: string;
+  method_type: string;
+  method_display: string;  // 表示用
+  status: 'pending' | 'processing' | 'completed' | 'failed';
+  requested_at: string;
+  processed_at?: string;
+  error_message?: string;
+  fee: number;  // 手数料
+  net_amount: number;  // 実際の振込額
+}
+
+// 税務情報
+export interface TaxInfo {
+  id: string;
+  entity_type: 'individual' | 'business';
+  individual_number?: string;     // マイナンバー
+  business_number?: string;       // 法人番号
+  name: string;
+  address: string;
+  is_verified: boolean;
 }
 
 // 視聴履歴
@@ -353,4 +431,30 @@ export interface Comment {
   created_at: string;
   parent_comment_id?: string; // 返信の場合、親コメントのID
   replies?: Comment[]; // 返信コメント
+}
+
+// 決済プロバイダー関連
+export type PaymentProvider = 'stripe' | 'ccbill' | 'epoch';
+
+// 投げ銭リクエスト
+export interface TipRequest {
+  content_id: string;
+  content_type: 'video' | 'short' | 'live';
+  amount: number;
+  message?: string;
+  payment_provider: PaymentProvider;  // 自動選択される
+}
+
+// 投げ銭履歴
+export interface TipHistory {
+  id: string;
+  content_id: string;
+  content_title: string;
+  content_thumbnail: string;
+  creator_name: string;
+  amount: number;
+  message?: string;
+  payment_provider: PaymentProvider;
+  created_at: string;
+  status: 'completed' | 'pending' | 'failed';
 }

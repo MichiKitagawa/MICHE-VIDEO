@@ -1,6 +1,6 @@
 // ライブ配信設定画面
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -18,6 +18,7 @@ import { useRouter } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../constants/Colors';
+import { isWeb } from '../constants/Platform';
 
 const CATEGORIES = ['ゲーム', '音楽', 'トーク', '教育', 'スポーツ', 'クリエイティブ', 'その他'];
 
@@ -25,6 +26,9 @@ export default function GoLiveScreen() {
   const router = useRouter();
   const { width } = useWindowDimensions();
   const isMobile = width < 768;
+
+  // Streaming method selection
+  const [streamingMethod, setStreamingMethod] = useState<'camera' | 'software' | null>(null);
 
   // Basic info
   const [title, setTitle] = useState('');
@@ -44,6 +48,13 @@ export default function GoLiveScreen() {
   // Stream credentials (mock)
   const [streamKey] = useState('live_' + Date.now().toString());
   const [streamUrl] = useState('rtmp://stream.example.com/live');
+
+  // モバイルの場合は自動的にカメラ配信を選択
+  useEffect(() => {
+    if (!isWeb) {
+      setStreamingMethod('camera');
+    }
+  }, []);
 
   const pickThumbnail = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -108,6 +119,69 @@ export default function GoLiveScreen() {
         </View>
       </View>
 
+      {/* Streaming Method Selection (Web only) */}
+      {isWeb && streamingMethod === null && (
+        <View style={styles.methodSelectionContainer}>
+          <Text style={styles.methodSelectionTitle}>配信方法を選択</Text>
+          <Text style={styles.methodSelectionSubtitle}>
+            カメラで配信するか、配信ソフトを使用するかを選択してください
+          </Text>
+
+          <View style={styles.methodOptions}>
+            <TouchableOpacity
+              style={styles.methodOption}
+              onPress={() => setStreamingMethod('camera')}
+            >
+              <View style={styles.methodOptionIcon}>
+                <Ionicons name="videocam" size={48} color={Colors.primary} />
+              </View>
+              <Text style={styles.methodOptionTitle}>カメラで配信</Text>
+              <Text style={styles.methodOptionDescription}>
+                ウェブカメラを使用して{'\n'}
+                ブラウザから直接配信
+              </Text>
+              <View style={styles.methodFeatures}>
+                <View style={styles.methodFeatureItem}>
+                  <Ionicons name="checkmark-circle" size={16} color={Colors.primary} />
+                  <Text style={styles.methodFeatureText}>簡単セットアップ</Text>
+                </View>
+                <View style={styles.methodFeatureItem}>
+                  <Ionicons name="checkmark-circle" size={16} color={Colors.primary} />
+                  <Text style={styles.methodFeatureText}>追加ソフト不要</Text>
+                </View>
+              </View>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.methodOption}
+              onPress={() => setStreamingMethod('software')}
+            >
+              <View style={styles.methodOptionIcon}>
+                <Ionicons name="desktop" size={48} color="#FF4444" />
+              </View>
+              <Text style={styles.methodOptionTitle}>配信ソフトで配信</Text>
+              <Text style={styles.methodOptionDescription}>
+                OBS等の配信ソフトを使用して{'\n'}
+                高品質な配信
+              </Text>
+              <View style={styles.methodFeatures}>
+                <View style={styles.methodFeatureItem}>
+                  <Ionicons name="checkmark-circle" size={16} color="#FF4444" />
+                  <Text style={styles.methodFeatureText}>高画質配信</Text>
+                </View>
+                <View style={styles.methodFeatureItem}>
+                  <Ionicons name="checkmark-circle" size={16} color="#FF4444" />
+                  <Text style={styles.methodFeatureText}>詳細カスタマイズ</Text>
+                </View>
+              </View>
+            </TouchableOpacity>
+          </View>
+        </View>
+      )}
+
+      {/* Configuration sections (shown after method selection) */}
+      {streamingMethod !== null && (
+        <>
       {/* Basic Information */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>基本情報</Text>
@@ -274,50 +348,61 @@ export default function GoLiveScreen() {
         </View>
       </View>
 
-      {/* Streaming Information */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>ストリーミング情報</Text>
+      {/* Streaming Information (Software method only) */}
+      {streamingMethod === 'software' && (
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>ストリーミング情報</Text>
 
-        <View style={styles.infoBox}>
-          <Ionicons name="information-circle" size={20} color={Colors.primary} />
-          <Text style={styles.infoText}>
-            配信ソフト（OBS等）で以下の情報を使用してください
-          </Text>
-        </View>
+          <View style={styles.infoBox}>
+            <Ionicons name="information-circle" size={20} color={Colors.primary} />
+            <Text style={styles.infoText}>
+              配信ソフト（OBS等）で以下の情報を使用してください
+            </Text>
+          </View>
 
-        <Text style={styles.label}>Stream URL</Text>
-        <View style={styles.credentialBox}>
-          <Text style={styles.credentialText}>{streamUrl}</Text>
-          <TouchableOpacity
-            style={styles.copyButton}
-            onPress={() => copyToClipboard(streamUrl, 'Stream URL')}
-          >
-            <Ionicons name="copy" size={20} color={Colors.primary} />
-          </TouchableOpacity>
-        </View>
+          <Text style={styles.label}>Stream URL</Text>
+          <View style={styles.credentialBox}>
+            <Text style={styles.credentialText}>{streamUrl}</Text>
+            <TouchableOpacity
+              style={styles.copyButton}
+              onPress={() => copyToClipboard(streamUrl, 'Stream URL')}
+            >
+              <Ionicons name="copy" size={20} color={Colors.primary} />
+            </TouchableOpacity>
+          </View>
 
-        <Text style={styles.label}>Stream Key</Text>
-        <View style={styles.credentialBox}>
-          <Text style={styles.credentialText}>{streamKey}</Text>
-          <TouchableOpacity
-            style={styles.copyButton}
-            onPress={() => copyToClipboard(streamKey, 'Stream Key')}
-          >
-            <Ionicons name="copy" size={20} color={Colors.primary} />
-          </TouchableOpacity>
+          <Text style={styles.label}>Stream Key</Text>
+          <View style={styles.credentialBox}>
+            <Text style={styles.credentialText}>{streamKey}</Text>
+            <TouchableOpacity
+              style={styles.copyButton}
+              onPress={() => copyToClipboard(streamKey, 'Stream Key')}
+            >
+              <Ionicons name="copy" size={20} color={Colors.primary} />
+            </TouchableOpacity>
+          </View>
         </View>
-      </View>
+      )}
 
       {/* Action Buttons */}
       <View style={styles.actions}>
         <TouchableOpacity style={styles.cancelButton} onPress={() => router.back()}>
           <Text style={styles.cancelButtonText}>キャンセル</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.liveButton} onPress={handleGoLive}>
-          <Ionicons name="radio" size={20} color="#fff" />
-          <Text style={styles.liveButtonText}>配信開始</Text>
-        </TouchableOpacity>
+        {streamingMethod === 'camera' ? (
+          <TouchableOpacity style={styles.liveButton} onPress={handleGoLive}>
+            <Ionicons name="radio" size={20} color="#fff" />
+            <Text style={styles.liveButtonText}>配信開始</Text>
+          </TouchableOpacity>
+        ) : (
+          <TouchableOpacity style={styles.liveButton} onPress={handleGoLive}>
+            <Ionicons name="hourglass" size={20} color="#fff" />
+            <Text style={styles.liveButtonText}>配信待機</Text>
+          </TouchableOpacity>
+        )}
       </View>
+      </>
+      )}
     </ScrollView>
   );
 }
@@ -535,5 +620,74 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     color: '#fff',
+  },
+  // Method selection styles
+  methodSelectionContainer: {
+    marginBottom: 32,
+  },
+  methodSelectionTitle: {
+    fontSize: 22,
+    fontWeight: '700',
+    color: Colors.text,
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  methodSelectionSubtitle: {
+    fontSize: 15,
+    color: Colors.textSecondary,
+    marginBottom: 32,
+    textAlign: 'center',
+  },
+  methodOptions: {
+    flexDirection: 'row',
+    gap: 24,
+    justifyContent: 'center',
+    flexWrap: 'wrap',
+  },
+  methodOption: {
+    width: '45%',
+    minWidth: 280,
+    maxWidth: 400,
+    backgroundColor: Colors.surface,
+    borderRadius: 16,
+    padding: 32,
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: Colors.border,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 3,
+  },
+  methodOptionIcon: {
+    marginBottom: 20,
+  },
+  methodOptionTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: Colors.text,
+    marginBottom: 12,
+    textAlign: 'center',
+  },
+  methodOptionDescription: {
+    fontSize: 14,
+    color: Colors.textSecondary,
+    textAlign: 'center',
+    lineHeight: 20,
+    marginBottom: 20,
+  },
+  methodFeatures: {
+    width: '100%',
+    gap: 8,
+  },
+  methodFeatureItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  methodFeatureText: {
+    fontSize: 14,
+    color: Colors.text,
   },
 });

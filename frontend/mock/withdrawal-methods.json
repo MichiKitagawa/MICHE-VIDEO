@@ -1,0 +1,14 @@
+[
+  {
+    "id": "wm_001",
+    "type": "bank_transfer",
+    "bank_name": "三菱UFJ銀行",
+    "branch_name": "渋谷支店",
+    "account_type": "checking",
+    "account_number": "••••••1234",
+    "account_holder": "ヤマダ タロウ",
+    "is_verified": true,
+    "is_default": true,
+    "created_at": "2025-08-15T10:00:00Z"
+  }
+]

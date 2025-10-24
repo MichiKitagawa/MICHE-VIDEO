@@ -1,6 +1,6 @@
 // モックAPI
 
-import { Video, VideoDetail, IPLicense, User, Short, Subscription, NetflixContent, SubscriptionPlan, SubscribedChannel, WatchHistory, Channel, ChannelDetail, Analytics, NetflixContentUpload, LiveStream, LiveStreamCreate, LiveStreamStats, Comment, LiveChatMessage } from '../types';
+import { Video, VideoDetail, IPLicense, User, Short, Subscription, NetflixContent, SubscriptionPlan, SubscribedChannel, WatchHistory, Channel, ChannelDetail, Analytics, NetflixContentUpload, LiveStream, LiveStreamCreate, LiveStreamStats, Comment, LiveChatMessage, BillingHistory, PaymentMethod, EarningsStats, WithdrawalMethod, WithdrawalRequest, TipHistory } from '../types';
 import { canShowAdultContent } from '../constants/Platform';
 
 // モックデータのインポート
@@ -18,6 +18,10 @@ import analyticsData from '../mock/analytics.json';
 import videoCommentsData from '../mock/video-comments.json';
 import shortCommentsData from '../mock/short-comments.json';
 import liveChatMessagesData from '../mock/live-chat-messages.json';
+import billingHistoryData from '../mock/billing-history.json';
+import earningsStatsData from '../mock/earnings-stats.json';
+import withdrawalMethodsData from '../mock/withdrawal-methods.json';
+import withdrawalHistoryData from '../mock/withdrawal-history.json';
 
 // 動画一覧を取得
 export const getVideos = async (): Promise<Video[]> => {
@@ -451,4 +455,233 @@ export const sendSuperChat = async (
   };
   await new Promise(resolve => setTimeout(resolve, 500));
   return superChatMessage;
+};
+
+// ===== サブスクリプション管理関連 =====
+
+// プランをキャンセル
+export const cancelSubscription = async (): Promise<void> => {
+  await new Promise(resolve => setTimeout(resolve, 500));
+};
+
+// プランをダウングレード
+export const downgradePlan = async (planId: string): Promise<void> => {
+  await new Promise(resolve => setTimeout(resolve, 500));
+};
+
+// 請求履歴を取得
+export const getBillingHistory = async (): Promise<BillingHistory[]> => {
+  return billingHistoryData as BillingHistory[];
+};
+
+// 支払い方法一覧を取得
+export const getPaymentMethods = async (): Promise<PaymentMethod[]> => {
+  return [
+    {
+      id: 'pm_001',
+      type: 'credit_card',
+      last_four: '4242',
+      brand: 'Visa',
+      is_default: true,
+      expires_at: '2027-12-31',
+    },
+  ];
+};
+
+// 支払い方法を追加
+export const addPaymentMethod = async (
+  method: Omit<PaymentMethod, 'id'>
+): Promise<void> => {
+  await new Promise(resolve => setTimeout(resolve, 500));
+};
+
+// 支払い方法を削除
+export const deletePaymentMethod = async (methodId: string): Promise<void> => {
+  await new Promise(resolve => setTimeout(resolve, 500));
+};
+
+// デフォルト支払い方法を設定
+export const setDefaultPaymentMethod = async (methodId: string): Promise<void> => {
+  await new Promise(resolve => setTimeout(resolve, 300));
+};
+
+// ===== 収益・出金管理関連 =====
+
+const MINIMUM_WITHDRAWAL = 5000;  // 最低出金額
+const WITHDRAWAL_FEE = 250;       // 出金手数料
+
+// 収益統計を取得
+export const getEarningsStats = async (): Promise<EarningsStats> => {
+  return earningsStatsData as EarningsStats;
+};
+
+// 出金方法一覧を取得
+export const getWithdrawalMethods = async (): Promise<WithdrawalMethod[]> => {
+  return withdrawalMethodsData as WithdrawalMethod[];
+};
+
+// 出金方法を追加
+export const addWithdrawalMethod = async (
+  method: Omit<WithdrawalMethod, 'id' | 'is_verified' | 'created_at'>
+): Promise<void> => {
+  await new Promise(resolve => setTimeout(resolve, 500));
+};
+
+// 出金方法を削除
+export const deleteWithdrawalMethod = async (methodId: string): Promise<void> => {
+  await new Promise(resolve => setTimeout(resolve, 500));
+};
+
+// デフォルト出金方法を設定
+export const setDefaultWithdrawalMethod = async (methodId: string): Promise<void> => {
+  await new Promise(resolve => setTimeout(resolve, 300));
+};
+
+// 出金を申請
+export const requestWithdrawal = async (
+  amount: number,
+  methodId: string
+): Promise<WithdrawalRequest> => {
+  if (amount < MINIMUM_WITHDRAWAL) {
+    throw new Error(`最低出金額は¥${MINIMUM_WITHDRAWAL.toLocaleString()}です`);
+  }
+
+  const stats = await getEarningsStats();
+  if (amount > stats.available_balance) {
+    throw new Error('出金可能残高を超えています');
+  }
+
+  const method = (await getWithdrawalMethods()).find(m => m.id === methodId);
+  if (!method) {
+    throw new Error('出金方法が見つかりません');
+  }
+
+  await new Promise(resolve => setTimeout(resolve, 1000));
+
+  return {
+    id: 'wd_' + Date.now(),
+    amount,
+    method_id: methodId,
+    method_type: method.type,
+    method_display: method.type === 'bank_transfer'
+      ? `${method.bank_name} ${method.branch_name}`
+      : method.paypal_email || 'PayPal',
+    status: 'pending',
+    requested_at: new Date().toISOString(),
+    fee: WITHDRAWAL_FEE,
+    net_amount: amount - WITHDRAWAL_FEE,
+  };
+};
+
+// 出金履歴を取得
+export const getWithdrawalHistory = async (): Promise<WithdrawalRequest[]> => {
+  return withdrawalHistoryData as WithdrawalRequest[];
+};
+
+// ========================================
+// サブスクリプションプラン関連API
+// ========================================
+
+/**
+ * 利用可能なサブスクプランの一覧を取得
+ */
+export const getAvailableSubscriptionPlans = async (): Promise<SubscriptionPlan[]> => {
+  const plans = require('../mock/subscription-plans.json');
+  return new Promise(resolve => {
+    setTimeout(() => resolve(plans), 300);
+  });
+};
+
+/**
+ * ユーザーの現在のプランを取得
+ */
+export const getCurrentSubscriptionPlan = async (): Promise<SubscriptionPlan> => {
+  const plans = await getAvailableSubscriptionPlans();
+  // 現在はフリープランを返す（モック）
+  const currentPlan = plans.find(p => p.is_current) || plans.find(p => p.id === 'plan_free') || plans[0];
+  return currentPlan;
+};
+
+/**
+ * サブスクプランの変更
+ */
+export const changeSubscriptionPlan = async (
+  planId: string
+): Promise<{ success: boolean; paymentUrl?: string; error?: string }> => {
+  const plans = await getAvailableSubscriptionPlans();
+  const plan = plans.find(p => p.id === planId);
+
+  if (!plan) {
+    return { success: false, error: 'プランが見つかりません' };
+  }
+
+  if (plan.price === 0) {
+    // フリープランへの変更は即座に完了
+    return { success: true };
+  }
+
+  // 有料プランの場合は決済URLを返す
+  const { getPaymentUrl } = require('./paymentProvider');
+  const paymentUrl = getPaymentUrl(
+    plan.payment_provider!,
+    planId,
+    plan.price
+  );
+
+  return { success: true, paymentUrl };
+};
+
+// ========================================
+// 投げ銭関連API
+// ========================================
+
+/**
+ * 投げ銭を送る
+ */
+export const sendTip = async (
+  contentId: string,
+  contentType: 'video' | 'short' | 'live',
+  amount: number,
+  message?: string
+): Promise<{ success: boolean; paymentUrl?: string; error?: string }> => {
+  // コンテンツ情報を取得してアダルトフラグを確認
+  let isAdult = false;
+
+  if (contentType === 'video') {
+    const video = await getVideoDetail(contentId);
+    isAdult = video.is_adult;
+  } else if (contentType === 'short') {
+    const shorts = await getShorts();
+    const short = shorts.find(s => s.id === contentId);
+    isAdult = short?.is_adult || false;
+  }
+
+  // 決済処理
+  const { processTip } = require('./paymentProvider');
+  const result = await processTip(contentId, contentType, isAdult, amount, message);
+
+  return result;
+};
+
+/**
+ * 投げ銭履歴を取得
+ */
+export const getTipHistory = async (): Promise<TipHistory[]> => {
+  // モックデータ
+  return new Promise(resolve => {
+    setTimeout(() => resolve([
+      {
+        id: 'tip_1',
+        content_id: 'video_1',
+        content_title: 'Sample Video',
+        content_thumbnail: 'https://picsum.photos/400/225',
+        creator_name: 'Creator Name',
+        amount: 500,
+        message: 'Great content!',
+        payment_provider: 'stripe',
+        created_at: new Date().toISOString(),
+        status: 'completed',
+      },
+    ]), 300);
+  });
 };

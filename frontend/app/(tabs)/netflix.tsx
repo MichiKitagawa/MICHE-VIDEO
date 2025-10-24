@@ -1,13 +1,15 @@
 // Netflixタブ
 
 import React, { useEffect, useState, useMemo } from 'react';
-import { View, ScrollView, StyleSheet, ActivityIndicator } from 'react-native';
+import { View, ScrollView, StyleSheet, ActivityIndicator, Text, TouchableOpacity } from 'react-native';
 import { useRouter } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
 import HeroBanner from '../../components/HeroBanner';
 import CategoryRow from '../../components/CategoryRow';
 import NetflixHeader from '../../components/NetflixHeader';
-import { NetflixContent } from '../../types';
-import { getNetflixContents } from '../../utils/mockApi';
+import { NetflixContent, SubscriptionPlan } from '../../types';
+import { getNetflixContents, getCurrentSubscriptionPlan } from '../../utils/mockApi';
+import { filterNetflixContentByPlan } from '../../utils/contentAccess';
 import { Colors } from '../../constants/Colors';
 
 type CategoryType = 'home' | 'series' | 'movie';
@@ -17,6 +19,7 @@ export default function NetflixScreen() {
   const router = useRouter();
   const [contents, setContents] = useState<NetflixContent[]>([]);
   const [loading, setLoading] = useState(true);
+  const [currentPlan, setCurrentPlan] = useState<SubscriptionPlan | null>(null);
 
   // フィルター・ソート状態
   const [activeCategory, setActiveCategory] = useState<CategoryType>('home');
@@ -25,15 +28,19 @@ export default function NetflixScreen() {
   const [sortBy, setSortBy] = useState<SortType>('popular');
 
   useEffect(() => {
-    loadContents();
+    loadData();
   }, []);
 
-  const loadContents = async () => {
+  const loadData = async () => {
     try {
-      const data = await getNetflixContents();
-      setContents(data);
+      const [contentsData, planData] = await Promise.all([
+        getNetflixContents(),
+        getCurrentSubscriptionPlan(),
+      ]);
+      setContents(contentsData);
+      setCurrentPlan(planData);
     } catch (error) {
-      console.error('Failed to load Netflix contents:', error);
+      console.error('Failed to load data:', error);
     } finally {
       setLoading(false);
     }
@@ -56,6 +63,11 @@ export default function NetflixScreen() {
   // フィルター・ソート処理
   const filteredAndSortedContents = useMemo(() => {
     let result = [...contents];
+
+    // プランによるフィルタリング（Netflix アクセス & アダルトコンテンツ）
+    if (currentPlan) {
+      result = filterNetflixContentByPlan(result, currentPlan);
+    }
 
     // カテゴリーフィルター
     if (activeCategory === 'series') {
@@ -95,7 +107,7 @@ export default function NetflixScreen() {
     }
 
     return result;
-  }, [contents, activeCategory, selectedGenre, selectedCountry, sortBy]);
+  }, [contents, currentPlan, activeCategory, selectedGenre, selectedCountry, sortBy]);
 
   if (loading) {
     return (
@@ -113,6 +125,40 @@ export default function NetflixScreen() {
         />
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={Colors.primary} />
+        </View>
+      </View>
+    );
+  }
+
+  // Netflix視聴制限チェック
+  if (currentPlan && !currentPlan.has_netflix_access) {
+    return (
+      <View style={styles.container}>
+        <NetflixHeader
+          activeCategory={activeCategory}
+          onCategoryChange={setActiveCategory}
+          selectedGenre={selectedGenre}
+          onGenreChange={setSelectedGenre}
+          selectedCountry={selectedCountry}
+          onCountryChange={setSelectedCountry}
+          sortBy={sortBy}
+          onSortChange={setSortBy}
+          onProfilePress={handleProfilePress}
+        />
+        <View style={styles.restrictedContainer}>
+          <Ionicons name="lock-closed" size={64} color={Colors.textSecondary} />
+          <Text style={styles.restrictedTitle}>Netflix型コンテンツは有料プランで視聴できます</Text>
+          <Text style={styles.restrictedDescription}>
+            有料スタンダードまたは有料プレミアムにアップグレードして、
+            {'\n'}
+            Netflix型の高品質コンテンツをお楽しみください
+          </Text>
+          <TouchableOpacity
+            style={styles.upgradeButton}
+            onPress={() => router.push('/(tabs)/settings' as any)}
+          >
+            <Text style={styles.upgradeButtonText}>プランを見る</Text>
+          </TouchableOpacity>
         </View>
       </View>
     );
@@ -247,5 +293,37 @@ const styles = StyleSheet.create({
   },
   scrollView: {
     flex: 1,
+  },
+  restrictedContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 32,
+  },
+  restrictedTitle: {
+    fontSize: 22,
+    fontWeight: '600',
+    color: Colors.text,
+    textAlign: 'center',
+    marginTop: 24,
+    marginBottom: 12,
+  },
+  restrictedDescription: {
+    fontSize: 15,
+    color: Colors.textSecondary,
+    textAlign: 'center',
+    lineHeight: 22,
+    marginBottom: 32,
+  },
+  upgradeButton: {
+    backgroundColor: Colors.primary,
+    paddingHorizontal: 32,
+    paddingVertical: 14,
+    borderRadius: 8,
+  },
+  upgradeButtonText: {
+    color: Colors.background,
+    fontSize: 16,
+    fontWeight: '600',
   },
 });

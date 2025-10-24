@@ -1,0 +1,29 @@
+[
+  {
+    "id": "bill_001",
+    "date": "2025-10-01T00:00:00Z",
+    "amount": 980,
+    "plan_name": "有料スタンダード",
+    "payment_method": "Visa •••• 4242",
+    "status": "paid",
+    "invoice_url": "https://example.com/invoice/bill_001.pdf"
+  },
+  {
+    "id": "bill_002",
+    "date": "2025-09-01T00:00:00Z",
+    "amount": 980,
+    "plan_name": "有料スタンダード",
+    "payment_method": "Visa •••• 4242",
+    "status": "paid",
+    "invoice_url": "https://example.com/invoice/bill_002.pdf"
+  },
+  {
+    "id": "bill_003",
+    "date": "2025-08-01T00:00:00Z",
+    "amount": 980,
+    "plan_name": "有料スタンダード",
+    "payment_method": "Visa •••• 4242",
+    "status": "paid",
+    "invoice_url": "https://example.com/invoice/bill_003.pdf"
+  }
+]

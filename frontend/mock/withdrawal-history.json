@@ -1,0 +1,25 @@
+[
+  {
+    "id": "wd_001",
+    "amount": 50000,
+    "method_id": "wm_001",
+    "method_type": "bank_transfer",
+    "method_display": "三菱UFJ銀行 渋谷支店",
+    "status": "completed",
+    "requested_at": "2025-09-15T10:00:00Z",
+    "processed_at": "2025-09-18T15:30:00Z",
+    "fee": 250,
+    "net_amount": 49750
+  },
+  {
+    "id": "wd_002",
+    "amount": 30000,
+    "method_id": "wm_001",
+    "method_type": "bank_transfer",
+    "method_display": "三菱UFJ銀行 渋谷支店",
+    "status": "processing",
+    "requested_at": "2025-10-20T14:00:00Z",
+    "fee": 250,
+    "net_amount": 29750
+  }
+]

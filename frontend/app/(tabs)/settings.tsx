@@ -14,21 +14,52 @@ import {
   useWindowDimensions,
   TextInput,
   ActivityIndicator,
+  Modal,
+  Pressable,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import Header from '../../components/Header';
 import PlanCard from '../../components/PlanCard';
 import { Colors } from '../../constants/Colors';
-import { getUser, getSubscribedChannels, getSubscriptionPlans, upgradePlan, getWatchHistory, updateUser } from '../../utils/mockApi';
-import { User, SubscribedChannel, SubscriptionPlan, WatchHistory } from '../../types';
+import {
+  getUser,
+  getSubscribedChannels,
+  getAvailableSubscriptionPlans,
+  getCurrentSubscriptionPlan,
+  changeSubscriptionPlan,
+  cancelSubscription,
+  getWatchHistory,
+  updateUser,
+  getBillingHistory,
+  getPaymentMethods,
+  getEarningsStats,
+  getWithdrawalMethods,
+  getWithdrawalHistory,
+  requestWithdrawal,
+  addWithdrawalMethod,
+  deleteWithdrawalMethod,
+  setDefaultWithdrawalMethod,
+} from '../../utils/mockApi';
+import {
+  User,
+  SubscribedChannel,
+  SubscriptionPlan,
+  WatchHistory,
+  BillingHistory,
+  PaymentMethod,
+  EarningsStats,
+  WithdrawalMethod,
+  WithdrawalRequest,
+} from '../../types';
 
-type TabType = 'profile' | 'channels' | 'plan' | 'creation' | 'notifications' | 'history' | 'account';
+type TabType = 'profile' | 'channels' | 'plan' | 'earnings' | 'creation' | 'notifications' | 'history' | 'account';
 
 const TABS = [
   { key: 'profile', label: 'プロフィール' },
   { key: 'channels', label: '登録チャンネル' },
   { key: 'plan', label: 'プラン管理' },
+  { key: 'earnings', label: '収益管理' },
   { key: 'creation', label: 'Creation' },
   { key: 'notifications', label: '通知設定' },
   { key: 'history', label: '視聴履歴' },
@@ -45,6 +76,31 @@ export default function SettingsScreen() {
   const [channels, setChannels] = useState<SubscribedChannel[]>([]);
   const [plans, setPlans] = useState<SubscriptionPlan[]>([]);
   const [watchHistory, setWatchHistory] = useState<WatchHistory[]>([]);
+
+  // 請求・支払い関連
+  const [billingHistory, setBillingHistory] = useState<BillingHistory[]>([]);
+  const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
+
+  // 収益・出金関連
+  const [earningsStats, setEarningsStats] = useState<EarningsStats | null>(null);
+  const [withdrawalMethods, setWithdrawalMethods] = useState<WithdrawalMethod[]>([]);
+  const [withdrawalHistory, setWithdrawalHistory] = useState<WithdrawalRequest[]>([]);
+
+  // 出金モーダル関連
+  const [withdrawModalVisible, setWithdrawModalVisible] = useState(false);
+  const [withdrawAmount, setWithdrawAmount] = useState('');
+  const [selectedMethodId, setSelectedMethodId] = useState('');
+  const [withdrawing, setWithdrawing] = useState(false);
+
+  // 出金方法追加モーダル関連
+  const [addMethodModalVisible, setAddMethodModalVisible] = useState(false);
+  const [methodType, setMethodType] = useState<'bank_transfer' | 'paypal'>('bank_transfer');
+  const [bankName, setBankName] = useState('');
+  const [branchName, setBranchName] = useState('');
+  const [accountType, setAccountType] = useState<'checking' | 'savings'>('checking');
+  const [accountNumber, setAccountNumber] = useState('');
+  const [accountHolder, setAccountHolder] = useState('');
+  const [paypalEmail, setPaypalEmail] = useState('');
 
   // 通知設定
   const [pushNotifications, setPushNotifications] = useState(true);
@@ -67,12 +123,24 @@ export default function SettingsScreen() {
   const loadData = async () => {
     const userData = await getUser();
     const channelsData = await getSubscribedChannels();
-    const plansData = await getSubscriptionPlans();
+    const plansData = await getAvailableSubscriptionPlans();
     const historyData = await getWatchHistory();
+    const billingData = await getBillingHistory();
+    const paymentData = await getPaymentMethods();
+    const earningsData = await getEarningsStats();
+    const withdrawalMethodsData = await getWithdrawalMethods();
+    const withdrawalHistoryData = await getWithdrawalHistory();
+
     setUser(userData);
     setChannels(channelsData);
     setPlans(plansData);
     setWatchHistory(historyData);
+    setBillingHistory(billingData);
+    setPaymentMethods(paymentData);
+    setEarningsStats(earningsData);
+    setWithdrawalMethods(withdrawalMethodsData);
+    setWithdrawalHistory(withdrawalHistoryData);
+
     // フォーム初期値設定
     setEditName(userData.name);
     setEditEmail(userData.email);
@@ -86,22 +154,206 @@ export default function SettingsScreen() {
     return `${count}人`;
   };
 
-  const handleUpgradePlan = async (planId: string) => {
+  const handlePlanChange = async (targetPlanId: string) => {
+    const currentPlan = plans.find(p => p.is_current);
+    const targetPlan = plans.find(p => p.id === targetPlanId);
+
+    if (!currentPlan || !targetPlan) return;
+
+    const isUpgrade = targetPlan.price > currentPlan.price;
+    const isDowngrade = targetPlan.price < currentPlan.price;
+
+    // Display payment provider info
+    const providerInfo = targetPlan.payment_provider
+      ? `\n決済: ${targetPlan.payment_provider === 'stripe' ? 'Stripe' : targetPlan.payment_provider === 'ccbill' ? 'CCBill' : 'Epoch'}`
+      : '';
+
+    if (isUpgrade) {
+      Alert.alert(
+        'プランアップグレード',
+        `${targetPlan.name}（月額¥${targetPlan.price.toLocaleString()}）にアップグレードしますか？${providerInfo}\n即座に適用されます。`,
+        [
+          { text: 'キャンセル', style: 'cancel' },
+          {
+            text: 'アップグレード',
+            onPress: async () => {
+              const result = await changeSubscriptionPlan(targetPlanId);
+              if (result.success) {
+                if (result.paymentUrl) {
+                  Alert.alert(
+                    '決済ページへ移動',
+                    `以下のURLで決済を完了してください：\n${result.paymentUrl}`,
+                    [{ text: 'OK' }]
+                  );
+                } else {
+                  Alert.alert('成功', 'プランがアップグレードされました');
+                }
+                loadData();
+              } else {
+                Alert.alert('エラー', result.error || 'プラン変更に失敗しました');
+              }
+            },
+          },
+        ]
+      );
+    } else if (isDowngrade) {
+      Alert.alert(
+        'プランダウングレード',
+        `${targetPlan.name}（月額¥${targetPlan.price.toLocaleString()}）にダウングレードしますか？次回更新日から適用されます。`,
+        [
+          { text: 'キャンセル', style: 'cancel' },
+          {
+            text: 'ダウングレード',
+            onPress: async () => {
+              const result = await changeSubscriptionPlan(targetPlanId);
+              if (result.success) {
+                Alert.alert('成功', 'プランがダウングレードされました（次回更新日から適用）');
+                loadData();
+              } else {
+                Alert.alert('エラー', result.error || 'プラン変更に失敗しました');
+              }
+            },
+          },
+        ]
+      );
+    }
+  };
+
+  const handleCancelSubscription = () => {
     Alert.alert(
-      'プランアップグレード',
-      'このプランにアップグレードしますか？',
+      'プランをキャンセル',
+      '現在のプランをキャンセルしますか？次回更新日まで引き続き利用できます。',
       [
-        { text: 'キャンセル', style: 'cancel' },
+        { text: 'キャンセルしない', style: 'cancel' },
         {
-          text: 'アップグレード',
+          text: 'キャンセル',
+          style: 'destructive',
           onPress: async () => {
-            await upgradePlan(planId);
-            Alert.alert('成功', 'プランがアップグレードされました（モック）');
-            loadData();
+            try {
+              await cancelSubscription();
+              Alert.alert('キャンセル完了', 'プランがキャンセルされました');
+              loadData();
+            } catch (error) {
+              Alert.alert('エラー', 'キャンセルに失敗しました');
+            }
           },
         },
       ]
     );
+  };
+
+  // 出金申請
+  const handleWithdrawRequest = () => {
+    if (withdrawalMethods.length === 0) {
+      Alert.alert('エラー', '先に出金方法を登録してください');
+      return;
+    }
+    setWithdrawModalVisible(true);
+    setSelectedMethodId(withdrawalMethods.find(m => m.is_default)?.id || withdrawalMethods[0].id);
+  };
+
+  const handleSubmitWithdrawal = async () => {
+    const amount = parseInt(withdrawAmount);
+
+    if (isNaN(amount) || amount < 5000) {
+      Alert.alert('エラー', '最低出金額は¥5,000です');
+      return;
+    }
+
+    if (!earningsStats || amount > earningsStats.available_balance) {
+      Alert.alert('エラー', '出金可能残高を超えています');
+      return;
+    }
+
+    setWithdrawing(true);
+    try {
+      await requestWithdrawal(amount, selectedMethodId);
+      Alert.alert('申請完了', '出金申請が完了しました。通常3-5営業日で処理されます。');
+      setWithdrawModalVisible(false);
+      setWithdrawAmount('');
+      loadData();
+    } catch (error: any) {
+      Alert.alert('エラー', error.message || '出金申請に失敗しました');
+    } finally {
+      setWithdrawing(false);
+    }
+  };
+
+  // 出金方法追加
+  const handleAddWithdrawalMethod = () => {
+    setAddMethodModalVisible(true);
+  };
+
+  const handleSubmitMethod = async () => {
+    if (methodType === 'bank_transfer') {
+      if (!bankName || !branchName || !accountNumber || !accountHolder) {
+        Alert.alert('エラー', 'すべての項目を入力してください');
+        return;
+      }
+    } else {
+      if (!paypalEmail) {
+        Alert.alert('エラー', 'PayPalメールアドレスを入力してください');
+        return;
+      }
+    }
+
+    try {
+      await addWithdrawalMethod({
+        type: methodType,
+        bank_name: methodType === 'bank_transfer' ? bankName : undefined,
+        branch_name: methodType === 'bank_transfer' ? branchName : undefined,
+        account_type: methodType === 'bank_transfer' ? accountType : undefined,
+        account_number: methodType === 'bank_transfer' ? accountNumber : undefined,
+        account_holder: methodType === 'bank_transfer' ? accountHolder : undefined,
+        paypal_email: methodType === 'paypal' ? paypalEmail : undefined,
+        is_default: withdrawalMethods.length === 0,
+      });
+
+      Alert.alert('成功', '出金方法を追加しました');
+      setAddMethodModalVisible(false);
+      // フォームをクリア
+      setBankName('');
+      setBranchName('');
+      setAccountNumber('');
+      setAccountHolder('');
+      setPaypalEmail('');
+      loadData();
+    } catch (error) {
+      Alert.alert('エラー', '出金方法の追加に失敗しました');
+    }
+  };
+
+  const handleDeleteMethod = async (methodId: string) => {
+    Alert.alert(
+      '削除確認',
+      'この出金方法を削除しますか？',
+      [
+        { text: 'キャンセル', style: 'cancel' },
+        {
+          text: '削除',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await deleteWithdrawalMethod(methodId);
+              Alert.alert('成功', '出金方法を削除しました');
+              loadData();
+            } catch (error) {
+              Alert.alert('エラー', '削除に失敗しました');
+            }
+          },
+        },
+      ]
+    );
+  };
+
+  const handleSetDefaultMethod = async (methodId: string) => {
+    try {
+      await setDefaultWithdrawalMethod(methodId);
+      Alert.alert('成功', 'デフォルト出金方法を設定しました');
+      loadData();
+    } catch (error) {
+      Alert.alert('エラー', '設定に失敗しました');
+    }
   };
 
   const handleLogout = () => {
@@ -333,6 +585,27 @@ export default function SettingsScreen() {
           {activeTab === 'plan' && (
             <ScrollView style={styles.scrollView} contentContainerStyle={[styles.scrollContent, isMobile && styles.scrollContentMobile]}>
               <Text style={styles.sectionTitle}>プラン管理</Text>
+
+              {/* 現在のプランセクション */}
+              {plans.find(p => p.is_current) && plans.find(p => p.is_current)!.price > 0 && (
+                <View style={styles.currentPlanSection}>
+                  <Text style={styles.subsectionTitle}>現在のプラン</Text>
+                  <View style={styles.currentPlanCard}>
+                    <View style={styles.currentPlanInfo}>
+                      <Text style={styles.currentPlanName}>{plans.find(p => p.is_current)!.name}</Text>
+                      <Text style={styles.currentPlanPrice}>¥{plans.find(p => p.is_current)!.price.toLocaleString()}/月</Text>
+                    </View>
+                    <TouchableOpacity
+                      style={styles.cancelButton}
+                      onPress={handleCancelSubscription}
+                    >
+                      <Text style={styles.cancelButtonText}>プランをキャンセル</Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              )}
+
+              {/* 利用可能なプラン */}
               <Text style={styles.planSubtitle}>
                 あなたに最適なプランをお選びください
               </Text>
@@ -340,9 +613,184 @@ export default function SettingsScreen() {
               <View style={[styles.plansContainer, isMobile && styles.plansContainerMobile]}>
                 {plans.map((plan) => (
                   <View key={plan.id} style={[isMobile && styles.planCardMobile]}>
-                    <PlanCard plan={plan} onUpgrade={handleUpgradePlan} />
+                    <PlanCard plan={plan} onUpgrade={handlePlanChange} />
                   </View>
                 ))}
+              </View>
+
+              {/* 請求情報（有料プランのみ） */}
+              {plans.find(p => p.is_current)?.price! > 0 && (
+                <>
+                  <View style={styles.billingInfoSection}>
+                    <Text style={styles.subsectionTitle}>請求情報</Text>
+                    {paymentMethods.length > 0 && (
+                      <View style={styles.paymentMethodCard}>
+                        <Text style={styles.paymentMethodLabel}>支払い方法</Text>
+                        <Text style={styles.paymentMethodValue}>
+                          {paymentMethods[0].brand} •••• {paymentMethods[0].last_four}
+                        </Text>
+                      </View>
+                    )}
+                  </View>
+
+                  {/* 請求履歴 */}
+                  <View style={styles.billingHistorySection}>
+                    <Text style={styles.subsectionTitle}>請求履歴</Text>
+                    {billingHistory.map((bill) => (
+                      <View key={bill.id} style={styles.billingHistoryItem}>
+                        <View style={styles.billingHistoryInfo}>
+                          <Text style={styles.billingHistoryDate}>
+                            {new Date(bill.date).toLocaleDateString('ja-JP')}
+                          </Text>
+                          <Text style={styles.billingHistoryPlan}>{bill.plan_name}</Text>
+                        </View>
+                        <Text style={styles.billingHistoryAmount}>¥{bill.amount.toLocaleString()}</Text>
+                      </View>
+                    ))}
+                  </View>
+                </>
+              )}
+            </ScrollView>
+          )}
+
+          {/* 収益管理タブ */}
+          {activeTab === 'earnings' && earningsStats && (
+            <ScrollView style={styles.scrollView} contentContainerStyle={[styles.scrollContent, isMobile && styles.scrollContentMobile]}>
+              <Text style={styles.sectionTitle}>収益管理</Text>
+
+              {/* 収益サマリー */}
+              <View style={styles.earningsSummary}>
+                <View style={styles.balanceCard}>
+                  <Text style={styles.balanceLabel}>出金可能残高</Text>
+                  <Text style={styles.balanceAmount}>¥{earningsStats.available_balance.toLocaleString()}</Text>
+                  <TouchableOpacity
+                    style={styles.withdrawButton}
+                    onPress={handleWithdrawRequest}
+                  >
+                    <Text style={styles.withdrawButtonText}>出金申請</Text>
+                  </TouchableOpacity>
+                </View>
+
+                <View style={styles.statsGrid}>
+                  <View style={styles.statItem}>
+                    <Text style={styles.statLabel}>保留中残高</Text>
+                    <Text style={styles.statValue}>¥{earningsStats.pending_balance.toLocaleString()}</Text>
+                  </View>
+                  <View style={styles.statItem}>
+                    <Text style={styles.statLabel}>今月の収益</Text>
+                    <Text style={styles.statValue}>¥{earningsStats.this_month_earnings.toLocaleString()}</Text>
+                  </View>
+                  <View style={styles.statItem}>
+                    <Text style={styles.statLabel}>累計出金額</Text>
+                    <Text style={styles.statValue}>¥{earningsStats.total_withdrawn.toLocaleString()}</Text>
+                  </View>
+                </View>
+              </View>
+
+              {/* 収益内訳 */}
+              <View style={styles.earningsBreakdown}>
+                <Text style={styles.subsectionTitle}>収益内訳</Text>
+                <View style={styles.breakdownItem}>
+                  <Text style={styles.breakdownLabel}>投げ銭</Text>
+                  <Text style={styles.breakdownValue}>¥{earningsStats.breakdown.tips.toLocaleString()}</Text>
+                </View>
+                <View style={styles.breakdownItem}>
+                  <Text style={styles.breakdownLabel}>サブスク分配プール</Text>
+                  <Text style={styles.breakdownValue}>¥{earningsStats.breakdown.subscription_pool.toLocaleString()}</Text>
+                </View>
+              </View>
+
+              {/* 出金方法の管理 */}
+              <View style={styles.withdrawalMethodsSection}>
+                <View style={styles.subsectionHeader}>
+                  <Text style={styles.subsectionTitle}>出金方法</Text>
+                  <TouchableOpacity onPress={handleAddWithdrawalMethod}>
+                    <Ionicons name="add-circle" size={24} color={Colors.primary} />
+                  </TouchableOpacity>
+                </View>
+
+                {withdrawalMethods.map((method) => (
+                  <View key={method.id} style={styles.methodCard}>
+                    <View style={styles.methodInfo}>
+                      <Ionicons
+                        name={method.type === 'bank_transfer' ? 'business' : 'logo-paypal'}
+                        size={24}
+                        color={Colors.primary}
+                      />
+                      <View style={styles.methodDetails}>
+                        <Text style={styles.methodName}>
+                          {method.type === 'bank_transfer'
+                            ? `${method.bank_name} ${method.branch_name}`
+                            : method.paypal_email}
+                        </Text>
+                        <Text style={styles.methodAccount}>
+                          {method.type === 'bank_transfer'
+                            ? `${method.account_holder} (${method.account_number})`
+                            : 'PayPal'}
+                        </Text>
+                        {method.is_default && (
+                          <View style={styles.defaultBadge}>
+                            <Text style={styles.defaultBadgeText}>デフォルト</Text>
+                          </View>
+                        )}
+                      </View>
+                    </View>
+
+                    <View style={styles.methodActions}>
+                      {!method.is_default && (
+                        <TouchableOpacity onPress={() => handleSetDefaultMethod(method.id)}>
+                          <Text style={styles.methodActionText}>デフォルトに設定</Text>
+                        </TouchableOpacity>
+                      )}
+                      <TouchableOpacity onPress={() => handleDeleteMethod(method.id)}>
+                        <Ionicons name="trash-outline" size={20} color="#D32F2F" />
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                ))}
+              </View>
+
+              {/* 出金履歴 */}
+              <View style={styles.withdrawalHistorySection}>
+                <Text style={styles.subsectionTitle}>出金履歴</Text>
+                {withdrawalHistory.length === 0 ? (
+                  <View style={styles.emptyState}>
+                    <Text style={styles.emptyStateText}>出金履歴がありません</Text>
+                  </View>
+                ) : (
+                  withdrawalHistory.map((request) => (
+                    <View key={request.id} style={styles.historyCard}>
+                      <View style={styles.historyHeader}>
+                        <Text style={styles.historyAmount}>¥{request.amount.toLocaleString()}</Text>
+                        <View style={[
+                          styles.statusBadge,
+                          request.status === 'completed' && styles.statusCompleted,
+                          request.status === 'processing' && styles.statusProcessing,
+                          request.status === 'pending' && styles.statusPending,
+                        ]}>
+                          <Text style={styles.statusText}>
+                            {request.status === 'completed' && '完了'}
+                            {request.status === 'processing' && '処理中'}
+                            {request.status === 'pending' && '申請中'}
+                          </Text>
+                        </View>
+                      </View>
+
+                      <Text style={styles.historyMethod}>{request.method_display}</Text>
+                      <Text style={styles.historyDate}>
+                        申請日: {new Date(request.requested_at).toLocaleDateString('ja-JP')}
+                      </Text>
+                      {request.processed_at && (
+                        <Text style={styles.historyDate}>
+                          処理日: {new Date(request.processed_at).toLocaleDateString('ja-JP')}
+                        </Text>
+                      )}
+                      <Text style={styles.historyFee}>
+                        手数料: ¥{request.fee.toLocaleString()}（実振込額: ¥{request.net_amount.toLocaleString()}）
+                      </Text>
+                    </View>
+                  ))
+                )}
               </View>
             </ScrollView>
           )}
@@ -524,6 +972,265 @@ export default function SettingsScreen() {
           )}
         </View>
       </View>
+
+      {/* 出金申請モーダル */}
+      <Modal
+        visible={withdrawModalVisible}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setWithdrawModalVisible(false)}
+      >
+        <Pressable
+          style={styles.modalBackdrop}
+          onPress={() => setWithdrawModalVisible(false)}
+        >
+          <Pressable style={styles.withdrawModal} onPress={(e) => e.stopPropagation()}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>出金申請</Text>
+              <TouchableOpacity onPress={() => setWithdrawModalVisible(false)}>
+                <Ionicons name="close" size={24} color={Colors.text} />
+              </TouchableOpacity>
+            </View>
+
+            <View style={styles.modalContent}>
+              <View style={styles.balanceInfo}>
+                <Text style={styles.balanceInfoLabel}>出金可能残高</Text>
+                <Text style={styles.balanceInfoAmount}>¥{earningsStats?.available_balance.toLocaleString()}</Text>
+              </View>
+
+              <View style={styles.formField}>
+                <Text style={styles.fieldLabel}>出金額（最低¥5,000）</Text>
+                <TextInput
+                  style={styles.fieldInput}
+                  value={withdrawAmount}
+                  onChangeText={setWithdrawAmount}
+                  placeholder="出金額を入力"
+                  placeholderTextColor={Colors.textSecondary}
+                  keyboardType="numeric"
+                />
+              </View>
+
+              <View style={styles.formField}>
+                <Text style={styles.fieldLabel}>出金方法</Text>
+                {withdrawalMethods.map((method) => (
+                  <TouchableOpacity
+                    key={method.id}
+                    style={styles.methodOption}
+                    onPress={() => setSelectedMethodId(method.id)}
+                  >
+                    <View style={styles.radioButton}>
+                      {selectedMethodId === method.id && <View style={styles.radioButtonInner} />}
+                    </View>
+                    <View style={styles.methodOptionInfo}>
+                      <Text style={styles.methodOptionName}>
+                        {method.type === 'bank_transfer'
+                          ? `${method.bank_name} ${method.branch_name}`
+                          : method.paypal_email}
+                      </Text>
+                      <Text style={styles.methodOptionDetails}>
+                        {method.type === 'bank_transfer'
+                          ? `${method.account_holder} (${method.account_number})`
+                          : 'PayPal'}
+                      </Text>
+                    </View>
+                  </TouchableOpacity>
+                ))}
+              </View>
+
+              <Text style={styles.feeNotice}>※ 手数料¥250が差し引かれます</Text>
+
+              <TouchableOpacity
+                style={[styles.submitButton, withdrawing && styles.submitButtonDisabled]}
+                onPress={handleSubmitWithdrawal}
+                disabled={withdrawing}
+              >
+                {withdrawing ? (
+                  <ActivityIndicator size="small" color={Colors.background} />
+                ) : (
+                  <Text style={styles.submitButtonText}>出金申請を送信</Text>
+                )}
+              </TouchableOpacity>
+            </View>
+          </Pressable>
+        </Pressable>
+      </Modal>
+
+      {/* 出金方法追加モーダル */}
+      <Modal
+        visible={addMethodModalVisible}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setAddMethodModalVisible(false)}
+      >
+        <Pressable
+          style={styles.modalBackdrop}
+          onPress={() => setAddMethodModalVisible(false)}
+        >
+          <Pressable style={styles.methodModal} onPress={(e) => e.stopPropagation()}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>出金方法を追加</Text>
+              <TouchableOpacity onPress={() => setAddMethodModalVisible(false)}>
+                <Ionicons name="close" size={24} color={Colors.text} />
+              </TouchableOpacity>
+            </View>
+
+            <ScrollView style={styles.modalContent}>
+              <View style={styles.methodTypeSelector}>
+                <TouchableOpacity
+                  style={[
+                    styles.methodTypeButton,
+                    methodType === 'bank_transfer' && styles.methodTypeButtonActive,
+                  ]}
+                  onPress={() => setMethodType('bank_transfer')}
+                >
+                  <Ionicons
+                    name="business"
+                    size={24}
+                    color={methodType === 'bank_transfer' ? Colors.primary : Colors.textSecondary}
+                  />
+                  <Text
+                    style={[
+                      styles.methodTypeText,
+                      methodType === 'bank_transfer' && styles.methodTypeTextActive,
+                    ]}
+                  >
+                    銀行振込
+                  </Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={[
+                    styles.methodTypeButton,
+                    methodType === 'paypal' && styles.methodTypeButtonActive,
+                  ]}
+                  onPress={() => setMethodType('paypal')}
+                >
+                  <Ionicons
+                    name="logo-paypal"
+                    size={24}
+                    color={methodType === 'paypal' ? Colors.primary : Colors.textSecondary}
+                  />
+                  <Text
+                    style={[
+                      styles.methodTypeText,
+                      methodType === 'paypal' && styles.methodTypeTextActive,
+                    ]}
+                  >
+                    PayPal
+                  </Text>
+                </TouchableOpacity>
+              </View>
+
+              {methodType === 'bank_transfer' ? (
+                <>
+                  <View style={styles.formField}>
+                    <Text style={styles.fieldLabel}>銀行名</Text>
+                    <TextInput
+                      style={styles.fieldInput}
+                      value={bankName}
+                      onChangeText={setBankName}
+                      placeholder="例: 三菱UFJ銀行"
+                      placeholderTextColor={Colors.textSecondary}
+                    />
+                  </View>
+
+                  <View style={styles.formField}>
+                    <Text style={styles.fieldLabel}>支店名</Text>
+                    <TextInput
+                      style={styles.fieldInput}
+                      value={branchName}
+                      onChangeText={setBranchName}
+                      placeholder="例: 渋谷支店"
+                      placeholderTextColor={Colors.textSecondary}
+                    />
+                  </View>
+
+                  <View style={styles.formField}>
+                    <Text style={styles.fieldLabel}>口座種別</Text>
+                    <View style={styles.accountTypeSelector}>
+                      <TouchableOpacity
+                        style={[
+                          styles.accountTypeButton,
+                          accountType === 'checking' && styles.accountTypeButtonActive,
+                        ]}
+                        onPress={() => setAccountType('checking')}
+                      >
+                        <Text
+                          style={[
+                            styles.accountTypeText,
+                            accountType === 'checking' && styles.accountTypeTextActive,
+                          ]}
+                        >
+                          普通
+                        </Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        style={[
+                          styles.accountTypeButton,
+                          accountType === 'savings' && styles.accountTypeButtonActive,
+                        ]}
+                        onPress={() => setAccountType('savings')}
+                      >
+                        <Text
+                          style={[
+                            styles.accountTypeText,
+                            accountType === 'savings' && styles.accountTypeTextActive,
+                          ]}
+                        >
+                          貯蓄
+                        </Text>
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+
+                  <View style={styles.formField}>
+                    <Text style={styles.fieldLabel}>口座番号</Text>
+                    <TextInput
+                      style={styles.fieldInput}
+                      value={accountNumber}
+                      onChangeText={setAccountNumber}
+                      placeholder="口座番号"
+                      placeholderTextColor={Colors.textSecondary}
+                      keyboardType="numeric"
+                    />
+                  </View>
+
+                  <View style={styles.formField}>
+                    <Text style={styles.fieldLabel}>口座名義（カナ）</Text>
+                    <TextInput
+                      style={styles.fieldInput}
+                      value={accountHolder}
+                      onChangeText={setAccountHolder}
+                      placeholder="例: ヤマダ タロウ"
+                      placeholderTextColor={Colors.textSecondary}
+                    />
+                  </View>
+                </>
+              ) : (
+                <View style={styles.formField}>
+                  <Text style={styles.fieldLabel}>PayPalメールアドレス</Text>
+                  <TextInput
+                    style={styles.fieldInput}
+                    value={paypalEmail}
+                    onChangeText={setPaypalEmail}
+                    placeholder="example@email.com"
+                    placeholderTextColor={Colors.textSecondary}
+                    keyboardType="email-address"
+                    autoCapitalize="none"
+                  />
+                </View>
+              )}
+
+              <TouchableOpacity
+                style={styles.submitButton}
+                onPress={handleSubmitMethod}
+              >
+                <Text style={styles.submitButtonText}>追加</Text>
+              </TouchableOpacity>
+            </ScrollView>
+          </Pressable>
+        </Pressable>
+      </Modal>
     </View>
   );
 }
@@ -1041,5 +1748,463 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: Colors.textSecondary,
     lineHeight: 18,
+  },
+  // プラン管理スタイル
+  currentPlanSection: {
+    marginBottom: 32,
+  },
+  subsectionTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: Colors.text,
+    marginBottom: 16,
+  },
+  currentPlanCard: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    backgroundColor: Colors.card,
+    borderRadius: 12,
+    padding: 20,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  currentPlanInfo: {
+    flex: 1,
+  },
+  currentPlanName: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: Colors.text,
+    marginBottom: 4,
+  },
+  currentPlanPrice: {
+    fontSize: 15,
+    color: Colors.textSecondary,
+  },
+  cancelButton: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    backgroundColor: '#FFE5E5',
+    borderRadius: 6,
+  },
+  cancelButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#D32F2F',
+  },
+  billingInfoSection: {
+    marginTop: 32,
+    marginBottom: 24,
+  },
+  paymentMethodCard: {
+    backgroundColor: Colors.card,
+    borderRadius: 12,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  paymentMethodLabel: {
+    fontSize: 14,
+    color: Colors.textSecondary,
+    marginBottom: 4,
+  },
+  paymentMethodValue: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: Colors.text,
+  },
+  billingHistorySection: {
+    marginTop: 24,
+  },
+  billingHistoryItem: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.border,
+  },
+  billingHistoryInfo: {
+    flex: 1,
+  },
+  billingHistoryDate: {
+    fontSize: 14,
+    color: Colors.text,
+    marginBottom: 4,
+  },
+  billingHistoryPlan: {
+    fontSize: 13,
+    color: Colors.textSecondary,
+  },
+  billingHistoryAmount: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: Colors.text,
+  },
+  // 収益管理スタイル
+  earningsSummary: {
+    marginBottom: 32,
+  },
+  balanceCard: {
+    backgroundColor: Colors.primary,
+    borderRadius: 16,
+    padding: 24,
+    marginBottom: 16,
+  },
+  balanceLabel: {
+    fontSize: 14,
+    color: '#FFFFFF',
+    opacity: 0.9,
+    marginBottom: 8,
+  },
+  balanceAmount: {
+    fontSize: 36,
+    fontWeight: 'bold',
+    color: '#FFFFFF',
+    marginBottom: 20,
+  },
+  withdrawButton: {
+    backgroundColor: '#FFFFFF',
+    paddingVertical: 12,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  withdrawButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: Colors.primary,
+  },
+  statsGrid: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  statItem: {
+    flex: 1,
+    backgroundColor: Colors.card,
+    borderRadius: 12,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  statLabel: {
+    fontSize: 12,
+    color: Colors.textSecondary,
+    marginBottom: 8,
+  },
+  statValue: {
+    fontSize: 20,
+    fontWeight: '600',
+    color: Colors.text,
+  },
+  earningsBreakdown: {
+    backgroundColor: Colors.card,
+    borderRadius: 12,
+    padding: 20,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    marginBottom: 32,
+  },
+  breakdownItem: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.border,
+  },
+  breakdownLabel: {
+    fontSize: 15,
+    color: Colors.text,
+  },
+  breakdownValue: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: Colors.text,
+  },
+  // 出金方法スタイル
+  withdrawalMethodsSection: {
+    marginBottom: 32,
+  },
+  subsectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  methodCard: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    backgroundColor: Colors.card,
+    borderRadius: 12,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    marginBottom: 12,
+  },
+  methodInfo: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  methodDetails: {
+    flex: 1,
+  },
+  methodName: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: Colors.text,
+    marginBottom: 4,
+  },
+  methodAccount: {
+    fontSize: 13,
+    color: Colors.textSecondary,
+  },
+  defaultBadge: {
+    backgroundColor: '#E3F2FD',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 4,
+    marginTop: 4,
+    alignSelf: 'flex-start',
+  },
+  defaultBadgeText: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: Colors.primary,
+  },
+  methodActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 16,
+  },
+  methodActionText: {
+    fontSize: 13,
+    color: Colors.primary,
+    fontWeight: '500',
+  },
+  // 出金履歴スタイル
+  withdrawalHistorySection: {
+    marginBottom: 32,
+  },
+  historyCard: {
+    backgroundColor: Colors.card,
+    borderRadius: 12,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    marginBottom: 12,
+  },
+  historyHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  historyAmount: {
+    fontSize: 20,
+    fontWeight: '600',
+    color: Colors.text,
+  },
+  statusBadge: {
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  statusCompleted: {
+    backgroundColor: '#E8F5E9',
+  },
+  statusProcessing: {
+    backgroundColor: '#FFF3E0',
+  },
+  statusPending: {
+    backgroundColor: '#E3F2FD',
+  },
+  statusText: {
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  historyMethod: {
+    fontSize: 14,
+    color: Colors.text,
+    marginBottom: 4,
+  },
+  historyDate: {
+    fontSize: 13,
+    color: Colors.textSecondary,
+    marginBottom: 2,
+  },
+  historyFee: {
+    fontSize: 13,
+    color: Colors.textSecondary,
+    marginTop: 8,
+  },
+  // モーダルスタイル
+  modalBackdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  withdrawModal: {
+    backgroundColor: Colors.background,
+    borderRadius: 16,
+    width: '90%',
+    maxWidth: 500,
+    maxHeight: '80%',
+  },
+  methodModal: {
+    backgroundColor: Colors.background,
+    borderRadius: 16,
+    width: '90%',
+    maxWidth: 500,
+    maxHeight: '80%',
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.border,
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: '600',
+    color: Colors.text,
+  },
+  modalContent: {
+    padding: 20,
+  },
+  balanceInfo: {
+    backgroundColor: '#F5F5F5',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 20,
+    alignItems: 'center',
+  },
+  balanceInfoLabel: {
+    fontSize: 13,
+    color: Colors.textSecondary,
+    marginBottom: 4,
+  },
+  balanceInfoAmount: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    color: Colors.primary,
+  },
+  methodOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 16,
+    backgroundColor: Colors.card,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    marginBottom: 12,
+  },
+  radioButton: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    borderWidth: 2,
+    borderColor: Colors.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+  },
+  radioButtonInner: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: Colors.primary,
+  },
+  methodOptionInfo: {
+    flex: 1,
+  },
+  methodOptionName: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: Colors.text,
+    marginBottom: 4,
+  },
+  methodOptionDetails: {
+    fontSize: 13,
+    color: Colors.textSecondary,
+  },
+  feeNotice: {
+    fontSize: 13,
+    color: Colors.textSecondary,
+    marginBottom: 20,
+    textAlign: 'center',
+  },
+  submitButton: {
+    backgroundColor: Colors.primary,
+    paddingVertical: 14,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  submitButtonDisabled: {
+    opacity: 0.6,
+  },
+  submitButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: Colors.background,
+  },
+  methodTypeSelector: {
+    flexDirection: 'row',
+    gap: 12,
+    marginBottom: 24,
+  },
+  methodTypeButton: {
+    flex: 1,
+    flexDirection: 'column',
+    alignItems: 'center',
+    padding: 16,
+    backgroundColor: Colors.card,
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: Colors.border,
+    gap: 8,
+  },
+  methodTypeButtonActive: {
+    borderColor: Colors.primary,
+    backgroundColor: '#E3F2FD',
+  },
+  methodTypeText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: Colors.textSecondary,
+  },
+  methodTypeTextActive: {
+    color: Colors.primary,
+  },
+  accountTypeSelector: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  accountTypeButton: {
+    flex: 1,
+    paddingVertical: 12,
+    alignItems: 'center',
+    backgroundColor: Colors.card,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  accountTypeButtonActive: {
+    backgroundColor: Colors.primary,
+    borderColor: Colors.primary,
+  },
+  accountTypeText: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: Colors.text,
+  },
+  accountTypeTextActive: {
+    color: Colors.background,
   },
 });
