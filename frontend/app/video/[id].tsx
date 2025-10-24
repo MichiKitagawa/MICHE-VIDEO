@@ -11,14 +11,16 @@ import {
   Image,
   TextInput,
   Alert,
+  Modal,
+  Pressable,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import VideoPlayer from '../../components/VideoPlayer';
 import ActionSheet from '../../components/ActionSheet';
 import TipModal from '../../components/TipModal';
-import { VideoDetail, Comment, SubscriptionPlan } from '../../types';
-import { getVideoDetail, getVideoComments, postComment, likeComment, saveContentForLater, reportContent, getCurrentSubscriptionPlan } from '../../utils/mockApi';
+import { VideoDetail, Comment, SubscriptionPlan, Playlist } from '../../types';
+import { getVideoDetail, getVideoComments, postComment, likeComment, saveContentForLater, reportContent, getCurrentSubscriptionPlan, getPlaylists, addVideoToPlaylist } from '../../utils/mockApi';
 import { canAccessContent, needsPlanUpgrade } from '../../utils/contentAccess';
 import { Colors } from '../../constants/Colors';
 
@@ -40,6 +42,11 @@ export default function VideoDetailScreen() {
 
   // 投げ銭モーダル
   const [tipModalVisible, setTipModalVisible] = useState(false);
+
+  // プレイリストモーダル
+  const [playlistModalVisible, setPlaylistModalVisible] = useState(false);
+  const [playlists, setPlaylists] = useState<Playlist[]>([]);
+  const [loadingPlaylists, setLoadingPlaylists] = useState(false);
 
   useEffect(() => {
     loadVideo();
@@ -126,6 +133,29 @@ export default function VideoDetailScreen() {
       Alert.alert('報告完了', 'ご報告ありがとうございます');
     } catch (error) {
       Alert.alert('エラー', '報告に失敗しました');
+    }
+  };
+
+  const handleAddToPlaylist = async () => {
+    setLoadingPlaylists(true);
+    setPlaylistModalVisible(true);
+    try {
+      const data = await getPlaylists();
+      setPlaylists(data);
+    } catch (error) {
+      Alert.alert('エラー', 'プレイリストの読み込みに失敗しました');
+    } finally {
+      setLoadingPlaylists(false);
+    }
+  };
+
+  const handleSelectPlaylist = async (playlistId: string) => {
+    try {
+      await addVideoToPlaylist(playlistId, id);
+      setPlaylistModalVisible(false);
+      Alert.alert('成功', 'プレイリストに追加しました');
+    } catch (error) {
+      Alert.alert('エラー', 'プレイリストへの追加に失敗しました');
     }
   };
 
@@ -273,6 +303,10 @@ export default function VideoDetailScreen() {
             <Ionicons name="share-outline" size={20} color={Colors.text} />
             <Text style={styles.actionText}>シェア</Text>
           </TouchableOpacity>
+          <TouchableOpacity style={styles.actionButton} onPress={handleAddToPlaylist}>
+            <Ionicons name="list-outline" size={20} color={Colors.text} />
+            <Text style={styles.actionText}>保存</Text>
+          </TouchableOpacity>
           <TouchableOpacity style={styles.actionButton} onPress={() => setTipModalVisible(true)}>
             <Ionicons name="gift-outline" size={20} color={Colors.primary} />
             <Text style={[styles.actionText, { color: Colors.primary }]}>投げ銭</Text>
@@ -411,6 +445,74 @@ export default function VideoDetailScreen() {
         creatorName={video.user_name}
         isAdultContent={video.is_adult}
       />
+
+      {/* プレイリスト選択モーダル */}
+      <Modal
+        visible={playlistModalVisible}
+        animationType="slide"
+        transparent
+        onRequestClose={() => setPlaylistModalVisible(false)}
+      >
+        <Pressable
+          style={styles.modalBackdrop}
+          onPress={() => setPlaylistModalVisible(false)}
+        >
+          <Pressable
+            style={styles.modalContainer}
+            onPress={(e) => e.stopPropagation()}
+          >
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>プレイリストに保存</Text>
+              <TouchableOpacity onPress={() => setPlaylistModalVisible(false)}>
+                <Ionicons name="close" size={28} color={Colors.text} />
+              </TouchableOpacity>
+            </View>
+
+            <ScrollView style={styles.modalContent}>
+              {loadingPlaylists ? (
+                <View style={styles.modalLoading}>
+                  <ActivityIndicator size="large" color={Colors.primary} />
+                </View>
+              ) : playlists.length === 0 ? (
+                <View style={styles.modalEmpty}>
+                  <Ionicons name="folder-open-outline" size={48} color={Colors.textSecondary} />
+                  <Text style={styles.modalEmptyText}>プレイリストがありません</Text>
+                  <TouchableOpacity
+                    style={styles.modalCreateButton}
+                    onPress={() => {
+                      setPlaylistModalVisible(false);
+                      router.push('/playlists' as any);
+                    }}
+                  >
+                    <Text style={styles.modalCreateButtonText}>プレイリストを作成</Text>
+                  </TouchableOpacity>
+                </View>
+              ) : (
+                playlists.map((playlist) => (
+                  <TouchableOpacity
+                    key={playlist.id}
+                    style={styles.playlistItem}
+                    onPress={() => handleSelectPlaylist(playlist.id)}
+                  >
+                    <Ionicons
+                      name={playlist.is_public ? 'list' : 'lock-closed'}
+                      size={24}
+                      color={Colors.textSecondary}
+                    />
+                    <View style={styles.playlistItemInfo}>
+                      <Text style={styles.playlistItemName}>{playlist.name}</Text>
+                      <Text style={styles.playlistItemCount}>
+                        {playlist.video_count}本の動画
+                      </Text>
+                    </View>
+                    <Ionicons name="chevron-forward" size={20} color={Colors.textSecondary} />
+                  </TouchableOpacity>
+                ))
+              )}
+            </ScrollView>
+          </Pressable>
+        </Pressable>
+      </Modal>
     </View>
   );
 }
@@ -695,6 +797,81 @@ const styles = StyleSheet.create({
   },
   commentActionText: {
     fontSize: 12,
+    color: Colors.textSecondary,
+  },
+  modalBackdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'flex-end',
+  },
+  modalContainer: {
+    backgroundColor: Colors.background,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    maxHeight: '80%',
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 16,
+    paddingHorizontal: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.border,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: Colors.text,
+  },
+  modalContent: {
+    maxHeight: 400,
+  },
+  modalLoading: {
+    paddingVertical: 48,
+    alignItems: 'center',
+  },
+  modalEmpty: {
+    paddingVertical: 48,
+    alignItems: 'center',
+  },
+  modalEmptyText: {
+    fontSize: 14,
+    color: Colors.textSecondary,
+    marginTop: 12,
+    marginBottom: 24,
+  },
+  modalCreateButton: {
+    backgroundColor: Colors.primary,
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 8,
+  },
+  modalCreateButtonText: {
+    color: Colors.background,
+    fontSize: 15,
+    fontWeight: '600',
+  },
+  playlistItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 16,
+    paddingHorizontal: 20,
+    gap: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.border,
+  },
+  playlistItemInfo: {
+    flex: 1,
+  },
+  playlistItemName: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: Colors.text,
+    marginBottom: 4,
+  },
+  playlistItemCount: {
+    fontSize: 13,
     color: Colors.textSecondary,
   },
 });

@@ -22,6 +22,7 @@ import { Ionicons } from '@expo/vector-icons';
 import Header from '../../components/Header';
 import PlanCard from '../../components/PlanCard';
 import AgeVerificationModal from '../../components/AgeVerificationModal';
+import SavedContentsTab from '../../components/settings/SavedContentsTab';
 import { Colors } from '../../constants/Colors';
 import {
   getUser,
@@ -54,7 +55,7 @@ import {
   WithdrawalRequest,
 } from '../../types';
 
-type TabType = 'profile' | 'channels' | 'plan' | 'earnings' | 'creation' | 'notifications' | 'history' | 'account';
+type TabType = 'profile' | 'channels' | 'plan' | 'earnings' | 'creation' | 'saved' | 'notifications' | 'history' | 'account';
 
 const TABS = [
   { key: 'profile', label: 'プロフィール' },
@@ -62,6 +63,7 @@ const TABS = [
   { key: 'plan', label: 'プラン管理' },
   { key: 'earnings', label: '収益管理' },
   { key: 'creation', label: 'Creation' },
+  { key: 'saved', label: '保存済み' },
   { key: 'notifications', label: '通知設定' },
   { key: 'history', label: '視聴履歴' },
   { key: 'account', label: 'アカウント' },
@@ -176,18 +178,71 @@ export default function SettingsScreen() {
     await executePlanChange(targetPlanId);
   };
 
+  const getPaymentProviderDisplayName = (provider: 'stripe' | 'ccbill' | 'epoch' | null): string => {
+    if (!provider) return '';
+    switch (provider) {
+      case 'stripe':
+        return 'Stripe';
+      case 'ccbill':
+        return 'CCBill';
+      case 'epoch':
+        return 'Epoch';
+      default:
+        return '';
+    }
+  };
+
   const executePlanChange = async (targetPlanId: string) => {
     const currentPlan = plans.find(p => p.is_current);
     const targetPlan = plans.find(p => p.id === targetPlanId);
 
     if (!currentPlan || !targetPlan) return;
 
+    // 異なる決済プロバイダー間の移行チェック
+    if (
+      currentPlan.payment_provider !== null &&
+      targetPlan.payment_provider !== null &&
+      currentPlan.payment_provider !== targetPlan.payment_provider
+    ) {
+      // 警告ダイアログを表示
+      Alert.alert(
+        'プラン変更の確認',
+        `現在のプラン（${currentPlan.name}）をキャンセルし、新しいプラン（${targetPlan.name}）に登録します。\n\n` +
+        `決済プロバイダーが${getPaymentProviderDisplayName(currentPlan.payment_provider)}から${getPaymentProviderDisplayName(targetPlan.payment_provider)}に変更されるため、新規登録として処理されます。`,
+        [
+          { text: 'キャンセル', style: 'cancel' },
+          {
+            text: '変更する',
+            onPress: async () => {
+              // 既存のプラン変更処理を実行
+              const result = await changeSubscriptionPlan(targetPlanId);
+              if (result.success) {
+                if (result.paymentUrl) {
+                  Alert.alert(
+                    '決済ページへ移動',
+                    `以下のURLで決済を完了してください：\n${result.paymentUrl}`,
+                    [{ text: 'OK' }]
+                  );
+                } else {
+                  Alert.alert('成功', 'プランが変更されました');
+                }
+                loadData();
+              } else {
+                Alert.alert('エラー', result.error || 'プラン変更に失敗しました');
+              }
+            },
+          },
+        ]
+      );
+      return;
+    }
+
     const isUpgrade = targetPlan.price > currentPlan.price;
     const isDowngrade = targetPlan.price < currentPlan.price;
 
     // Display payment provider info
     const providerInfo = targetPlan.payment_provider
-      ? `\n決済: ${targetPlan.payment_provider === 'stripe' ? 'Stripe' : targetPlan.payment_provider === 'ccbill' ? 'CCBill' : 'Epoch'}`
+      ? `\n決済: ${getPaymentProviderDisplayName(targetPlan.payment_provider)}`
       : '';
 
     if (isUpgrade) {
@@ -855,6 +910,9 @@ export default function SettingsScreen() {
               </TouchableOpacity>
             </ScrollView>
           )}
+
+          {/* 保存済みタブ */}
+          {activeTab === 'saved' && <SavedContentsTab />}
 
           {/* 通知設定タブ */}
           {activeTab === 'notifications' && (

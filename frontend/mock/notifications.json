@@ -1,0 +1,49 @@
+[
+  {
+    "id": "notif_1",
+    "type": "new_video",
+    "title": "新着動画",
+    "message": "お気に入りのクリエイター「Tech解説チャンネル」が新しい動画をアップロードしました",
+    "thumbnail_url": "https://picsum.photos/400/225",
+    "link_url": "/video/video_1",
+    "is_read": false,
+    "created_at": "2025-10-24T10:30:00Z"
+  },
+  {
+    "id": "notif_2",
+    "type": "comment_reply",
+    "title": "コメントへの返信",
+    "message": "あなたのコメントに「料理チャンネル」が返信しました",
+    "thumbnail_url": "https://picsum.photos/400/225?2",
+    "link_url": "/video/video_2",
+    "is_read": false,
+    "created_at": "2025-10-24T09:15:00Z"
+  },
+  {
+    "id": "notif_3",
+    "type": "like",
+    "title": "いいね",
+    "message": "あなたのコメントに10件のいいねがつきました",
+    "link_url": "/video/video_3",
+    "is_read": true,
+    "created_at": "2025-10-23T18:45:00Z"
+  },
+  {
+    "id": "notif_4",
+    "type": "tip_received",
+    "title": "投げ銭を受け取りました",
+    "message": "ユーザー「サポーター123」から¥500の投げ銭を受け取りました",
+    "link_url": "/settings?tab=earnings",
+    "is_read": true,
+    "created_at": "2025-10-23T14:20:00Z"
+  },
+  {
+    "id": "notif_5",
+    "type": "subscription",
+    "title": "新しいチャンネル登録",
+    "message": "「旅行好きユーザー」があなたのチャンネルを登録しました",
+    "link_url": "/channel/channel_current",
+    "is_read": true,
+    "created_at": "2025-10-22T11:00:00Z"
+  }
+]

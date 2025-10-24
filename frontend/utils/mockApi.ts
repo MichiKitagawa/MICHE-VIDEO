@@ -1,6 +1,6 @@
 // モックAPI
 
-import { Video, VideoDetail, IPLicense, User, Short, Subscription, NetflixContent, SubscriptionPlan, SubscribedChannel, WatchHistory, Channel, ChannelDetail, Analytics, NetflixContentUpload, LiveStream, LiveStreamCreate, LiveStreamStats, Comment, LiveChatMessage, BillingHistory, PaymentMethod, EarningsStats, WithdrawalMethod, WithdrawalRequest, TipHistory } from '../types';
+import { Video, VideoDetail, IPLicense, User, Short, Subscription, NetflixContent, SubscriptionPlan, SubscribedChannel, WatchHistory, Channel, ChannelDetail, Analytics, NetflixContentUpload, LiveStream, LiveStreamCreate, LiveStreamStats, Comment, LiveChatMessage, BillingHistory, PaymentMethod, EarningsStats, WithdrawalMethod, WithdrawalRequest, TipHistory, Notification, Playlist, PlaylistDetail } from '../types';
 import { canShowAdultContent } from '../constants/Platform';
 
 // モックデータのインポート
@@ -22,6 +22,8 @@ import billingHistoryData from '../mock/billing-history.json';
 import earningsStatsData from '../mock/earnings-stats.json';
 import withdrawalMethodsData from '../mock/withdrawal-methods.json';
 import withdrawalHistoryData from '../mock/withdrawal-history.json';
+import notificationsData from '../mock/notifications.json';
+import playlistsData from '../mock/playlists.json';
 
 // 動画一覧を取得
 export const getVideos = async (): Promise<Video[]> => {
@@ -702,4 +704,127 @@ export const getTipHistory = async (): Promise<TipHistory[]> => {
       },
     ]), 300);
   });
+};
+
+// ========================================
+// 保存済みコンテンツ関連API
+// ========================================
+
+/**
+ * 保存済みコンテンツを取得
+ */
+export const getSavedContents = async (): Promise<{
+  videos: Video[];
+  shorts: Short[];
+}> => {
+  // モック実装：実際にはサーバーから保存リストを取得
+  return {
+    videos: [],
+    shorts: [],
+  };
+};
+
+/**
+ * 保存済みコンテンツを削除
+ */
+export const removeSavedContent = async (
+  contentId: string,
+  contentType: 'video' | 'short'
+): Promise<void> => {
+  await new Promise(resolve => setTimeout(resolve, 300));
+};
+
+// ========================================
+// 通知関連API
+// ========================================
+
+/**
+ * 通知一覧を取得
+ */
+export const getNotifications = async (): Promise<Notification[]> => {
+  return notificationsData as Notification[];
+};
+
+/**
+ * 通知を既読にする
+ */
+export const markNotificationAsRead = async (notificationId: string): Promise<void> => {
+  await new Promise(resolve => setTimeout(resolve, 300));
+};
+
+/**
+ * 未読通知数を取得
+ */
+export const getUnreadNotificationCount = async (): Promise<number> => {
+  const notifications = await getNotifications();
+  return notifications.filter(n => !n.is_read).length;
+};
+
+// ========================================
+// プレイリスト関連API
+// ========================================
+
+/**
+ * プレイリスト一覧を取得
+ */
+export const getPlaylists = async (): Promise<Playlist[]> => {
+  return playlistsData as Playlist[];
+};
+
+/**
+ * プレイリスト詳細を取得
+ */
+export const getPlaylistDetail = async (playlistId: string): Promise<PlaylistDetail | null> => {
+  const playlists = playlistsData as Playlist[];
+  const playlist = playlists.find(p => p.id === playlistId);
+
+  if (!playlist) {
+    return null;
+  }
+
+  // モック実装：実際のプレイリストの動画を取得する代わりに、全動画からランダムに取得
+  const allVideos = await getVideos();
+  const playlistVideos = allVideos.slice(0, playlist.video_count);
+
+  return {
+    ...playlist,
+    videos: playlistVideos,
+  };
+};
+
+/**
+ * プレイリストを作成
+ */
+export const createPlaylist = async (name: string, description?: string): Promise<Playlist> => {
+  await new Promise(resolve => setTimeout(resolve, 500));
+  return {
+    id: 'playlist_' + Date.now(),
+    name,
+    description,
+    video_count: 0,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+    is_public: true,
+  };
+};
+
+/**
+ * プレイリストに動画を追加
+ */
+export const addVideoToPlaylist = async (playlistId: string, videoId: string): Promise<void> => {
+  await new Promise(resolve => setTimeout(resolve, 300));
+};
+
+/**
+ * プレイリストから動画を削除
+ */
+export const removeVideoFromPlaylist = async (playlistId: string, videoId: string): Promise<void> => {
+  await new Promise(resolve => setTimeout(resolve, 300));
+};
+
+/**
+ * プレイリストを削除
+ */
+export const deletePlaylist = async (playlistId: string): Promise<void> => {
+  await new Promise(resolve => setTimeout(resolve, 500));
 };

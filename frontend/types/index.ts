@@ -458,3 +458,31 @@ export interface TipHistory {
   created_at: string;
   status: 'completed' | 'pending' | 'failed';
 }
+
+// 通知
+export interface Notification {
+  id: string;
+  type: 'new_video' | 'comment_reply' | 'like' | 'tip_received' | 'subscription';
+  title: string;
+  message: string;
+  thumbnail_url?: string;
+  link_url?: string;
+  is_read: boolean;
+  created_at: string;
+}
+
+// プレイリスト
+export interface Playlist {
+  id: string;
+  name: string;
+  description?: string;
+  thumbnail_url?: string; // 最初の動画のサムネイル
+  video_count: number;
+  created_at: string;
+  updated_at: string;
+  is_public: boolean;
+}
+
+export interface PlaylistDetail extends Playlist {
+  videos: Video[];
+}

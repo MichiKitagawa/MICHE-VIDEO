@@ -142,8 +142,14 @@ export default function TipModal({
           {/* ヘッダー */}
           <View style={styles.header}>
             <View style={styles.headerLeft}>
-              <Ionicons name="gift-outline" size={24} color={Colors.primary} />
-              <Text style={styles.headerTitle}>投げ銭を送る</Text>
+              <Ionicons
+                name={contentType === 'live' ? 'cash-outline' : 'gift-outline'}
+                size={24}
+                color={Colors.primary}
+              />
+              <Text style={styles.headerTitle}>
+                {contentType === 'live' ? 'スーパーチャットを送る' : '投げ銭を送る'}
+              </Text>
             </View>
             <TouchableOpacity onPress={handleClose} disabled={processing}>
               <Ionicons name="close" size={28} color={Colors.text} />
@@ -244,7 +250,9 @@ export default function TipModal({
             {processing ? (
               <ActivityIndicator size="small" color={Colors.background} />
             ) : (
-              <Text style={styles.sendButtonText}>投げ銭を送る</Text>
+              <Text style={styles.sendButtonText}>
+                {contentType === 'live' ? 'スーパーチャットを送る' : '投げ銭を送る'}
+              </Text>
             )}
           </TouchableOpacity>
         </Pressable>

@@ -13,7 +13,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import VideoPlayer from '../../../components/VideoPlayer';
 import LiveChat from '../../../components/live/LiveChat';
-import SuperChatModal from '../../../components/live/SuperChatModal';
+import TipModal from '../../../components/TipModal';
 import { LiveStream, LiveChatMessage } from '../../../types';
 import { getLiveChatMessages, sendLiveChatMessage, sendSuperChat } from '../../../utils/mockApi';
 import { Colors } from '../../../constants/Colors';
@@ -26,7 +26,7 @@ export default function LiveStreamScreen() {
 
   const [loading, setLoading] = useState(true);
   const [messages, setMessages] = useState<LiveChatMessage[]>([]);
-  const [superChatModalVisible, setSuperChatModalVisible] = useState(false);
+  const [tipModalVisible, setTipModalVisible] = useState(false);
 
   // モックライブ配信データ
   const [liveStream] = useState<LiveStream>({
@@ -141,7 +141,7 @@ export default function LiveStreamScreen() {
               messages={messages}
               onSendMessage={handleSendMessage}
               onSendSuperChat={(amount, message) => {
-                setSuperChatModalVisible(true);
+                setTipModalVisible(true);
               }}
             />
           </View>
@@ -187,7 +187,7 @@ export default function LiveStreamScreen() {
               messages={messages}
               onSendMessage={handleSendMessage}
               onSendSuperChat={(amount, message) => {
-                setSuperChatModalVisible(true);
+                setTipModalVisible(true);
               }}
             />
           </View>
@@ -195,10 +195,14 @@ export default function LiveStreamScreen() {
       )}
 
       {/* スーパーチャットモーダル */}
-      <SuperChatModal
-        visible={superChatModalVisible}
-        onClose={() => setSuperChatModalVisible(false)}
-        onSend={handleSendSuperChat}
+      <TipModal
+        visible={tipModalVisible}
+        onClose={() => setTipModalVisible(false)}
+        contentId={id}
+        contentType="live"
+        contentTitle={liveStream.title}
+        creatorName="配信者"
+        isAdultContent={liveStream.is_adult}
       />
     </View>
   );
