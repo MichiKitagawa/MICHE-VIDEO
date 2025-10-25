@@ -5,10 +5,10 @@ import { PaymentProvider } from '../types';
  */
 export function selectPaymentProvider(isAdultContent: boolean): PaymentProvider {
   if (isAdultContent) {
-    // アダルトコンテンツはCCBill
-    return 'ccbill';  // または 'epoch'
+    // アダルトコンテンツはCCBill (Premium+プラン)
+    return 'ccbill';
   } else {
-    // 一般コンテンツはStripe
+    // 一般コンテンツはStripe (Premiumプラン)
     return 'stripe';
   }
 }
@@ -26,8 +26,6 @@ export function getPaymentUrl(
       return `/api/payment/stripe/checkout?plan=${planId}&amount=${amount}`;
     case 'ccbill':
       return `/api/payment/ccbill/checkout?plan=${planId}&amount=${amount}`;
-    case 'epoch':
-      return `/api/payment/epoch/checkout?plan=${planId}&amount=${amount}`;
     default:
       throw new Error(`Unknown payment provider: ${provider}`);
   }
@@ -64,8 +62,6 @@ export function getPaymentProviderDisplayName(provider: PaymentProvider): string
       return 'Stripe';
     case 'ccbill':
       return 'CCBill';
-    case 'epoch':
-      return 'Epoch';
     default:
       return provider.toUpperCase();
   }

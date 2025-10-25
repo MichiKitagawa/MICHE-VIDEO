@@ -205,45 +205,77 @@ users (1) ───────────────────────�
   {
     "id": "plan_free",
     "name": "Free",
+    "name_en": "Free",
     "price": 0,
-    "billing_interval": "month",
-    "features": {
+    "currency": "JPY",
+    "billing_cycle": "monthly",
+    "features": ["一般動画視聴"],
+    "feature_flags": {
       "general_videos": true,
       "netflix_videos": false,
-      "adult_videos": false
+      "adult_videos": false,
+      "hd_quality": false,
+      "ad_free": false
     },
-    "has_adult_access": false
+    "has_netflix_access": false,
+    "has_adult_access": false,
+    "has_ads": true,
+    "is_current": false,
+    "payment_provider": null,
+    "next_billing_date": null,
+    "device_limit": 1
   },
   {
     "id": "plan_premium",
-    "name": "Premium",
+    "name": "プレミアムプラン",
+    "name_en": "Premium",
     "price": 980,
-    "billing_interval": "month",
-    "payment_provider": "stripe",
-    "features": {
+    "currency": "JPY",
+    "billing_cycle": "monthly",
+    "features": ["Netflix型コンテンツ視聴", "広告なし", "1080p 配信", "ライブ配信", "2デバイス同時視聴"],
+    "feature_flags": {
       "general_videos": true,
       "netflix_videos": true,
       "adult_videos": false,
-      "hd_quality": true
+      "hd_quality": true,
+      "ad_free": true
     },
-    "has_adult_access": false
+    "has_netflix_access": true,
+    "has_adult_access": false,
+    "has_ads": false,
+    "is_current": false,
+    "payment_provider": "stripe",
+    "next_billing_date": "2025-11-01",
+    "device_limit": 2
   },
   {
     "id": "plan_premium_plus",
-    "name": "Premium+",
+    "name": "プレミアム+プラン",
+    "name_en": "Premium+",
     "price": 1980,
-    "billing_interval": "month",
-    "payment_provider": "ccbill",
-    "features": {
+    "currency": "JPY",
+    "billing_cycle": "monthly",
+    "features": ["Netflix型コンテンツ視聴", "アダルトコンテンツ視聴", "広告なし", "1080p 配信", "ライブ配信", "優先サポート", "5デバイス同時視聴"],
+    "feature_flags": {
       "general_videos": true,
       "netflix_videos": true,
       "adult_videos": true,
-      "hd_quality": true
+      "hd_quality": true,
+      "ad_free": true,
+      "priority_support": true
     },
-    "has_adult_access": true
+    "has_netflix_access": true,
+    "has_adult_access": true,
+    "has_ads": false,
+    "is_current": false,
+    "payment_provider": "ccbill",
+    "next_billing_date": "2025-11-01",
+    "device_limit": 5
   }
 ]
 ```
+
+**Note**: For the Free plan, `payment_provider` is `null` since no payment is required.
 
 ---
 
@@ -271,11 +303,18 @@ users (1) ───────────────────────�
 }
 ```
 
+**Note**: The following endpoints support both frontend and backend patterns for compatibility:
+- Backend pattern: `POST /api/subscriptions/create-checkout`
+- Frontend pattern (alias): `POST /api/payment/stripe/checkout`
+
+Both patterns are functionally identical and can be used interchangeably.
+
 ---
 
 ### 4.3 サブスクリプション作成（Stripe Checkout URL取得）
 
 **エンドポイント**: `POST /api/subscriptions/create-checkout`
+**エイリアス**: `POST /api/payment/stripe/checkout`
 
 **認証**: 必須（Bearer Token）
 
@@ -299,6 +338,7 @@ users (1) ───────────────────────�
 ### 4.4 サブスクリプション作成（CCBill）
 
 **エンドポイント**: `POST /api/subscriptions/create-ccbill-checkout`
+**エイリアス**: `POST /api/payment/ccbill/checkout`
 
 **認証**: 必須（Bearer Token）
 

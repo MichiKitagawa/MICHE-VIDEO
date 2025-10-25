@@ -158,7 +158,7 @@ CREATE TABLE tips (
 CREATE TABLE withdrawal_methods (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-  type VARCHAR(20) NOT NULL, -- 'bank_transfer', 'paypal'
+  type VARCHAR(50) NOT NULL, -- 'bank_transfer', 'paypal', 'other'
 
   -- 銀行振込の場合
   bank_name VARCHAR(100),
@@ -169,6 +169,9 @@ CREATE TABLE withdrawal_methods (
 
   -- PayPalの場合
   paypal_email VARCHAR(255),
+
+  -- その他の場合
+  metadata JSONB, -- For 'other' type additional information
 
   is_verified BOOLEAN DEFAULT FALSE,
   is_default BOOLEAN DEFAULT FALSE,

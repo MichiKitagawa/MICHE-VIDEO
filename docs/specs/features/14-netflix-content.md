@@ -162,7 +162,7 @@ CREATE TABLE episodes (
   title VARCHAR(255) NOT NULL,
   description TEXT,
   duration INTEGER NOT NULL, -- minutes
-  video_url VARCHAR(500) NOT NULL,
+  video_url VARCHAR(500) NOT NULL, -- CDN URL (HLS playlist) - required for each episode
   thumbnail_url VARCHAR(500),
   view_count INTEGER DEFAULT 0,
   created_at TIMESTAMP DEFAULT NOW(),
@@ -172,6 +172,8 @@ CREATE TABLE episodes (
   INDEX idx_episodes_season (season_id)
 );
 ```
+
+**Important**: Each episode must have a `video_url` field containing the CDN URL for the HLS playlist. This is required for streaming.
 
 #### `ip_licenses` テーブル
 ```sql
@@ -313,11 +315,12 @@ users (1) ─── (N) netflix_watch_history ─── (1) netflix_contents
       "episode_count": 12,
       "episodes": [
         {
-          "id": "ep_001",
+          "episode_id": "ep_001",
           "episode_number": 1,
           "title": "始まりの地",
           "description": "平和な村で育った少年が、運命の剣を手にする。",
           "duration": 45,
+          "video_url": "https://cdn.example.com/episodes/ep_001/playlist.m3u8",
           "thumbnail_url": "https://cdn.example.com/episodes/ep_001.jpg",
           "view_count": 15000
         }
@@ -360,6 +363,12 @@ users (1) ─── (N) netflix_watch_history ─── (1) netflix_contents
 **エラーレスポンス**:
 - `403 Forbidden` - Premium以上のプランが必要
 - `404 Not Found` - コンテンツが存在しない
+
+**Note on video_url**:
+- **For movies**: `video_url` is directly on the content object
+- **For series**: `video_url` is included in each episode within the `episodes` array
+- All `video_url` fields contain CDN URLs (HLS playlists) that can be used for streaming
+- For secure access, use the `/api/netflix/:id/stream` endpoint to generate signed URLs with 24-hour expiration
 
 ---
 
@@ -647,8 +656,9 @@ users (1) ─── (N) netflix_watch_history ─── (1) netflix_contents
 #### シリーズ
 - 複数シーズン・エピソード
 - `duration`不要（エピソード単位で持つ）
-- `video_url`不要
+- `video_url`不要（シリーズレベルでは不要、各エピソードに必須）
 - `seasons`必須（最低1シーズン、1エピソード）
+- 各エピソードは`video_url`を持つ必要がある（CDN HLS URL）
 
 ### 5.3 IP権利管理
 

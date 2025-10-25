@@ -86,7 +86,7 @@ export interface SubscriptionPlan {
   has_netflix_access: boolean; // Netflix型コンテンツ視聴可否
   has_ads: boolean; // 広告の有無
   has_adult_access: boolean; // アダルトコンテンツへのアクセス可否
-  payment_provider: 'stripe' | 'ccbill' | 'epoch' | null; // 決済プロバイダー
+  payment_provider: 'stripe' | 'ccbill' | null; // 決済プロバイダー (stripe: 一般コンテンツ, ccbill: アダルトコンテンツ)
 }
 
 // 請求履歴
@@ -434,7 +434,9 @@ export interface Comment {
 }
 
 // 決済プロバイダー関連
-export type PaymentProvider = 'stripe' | 'ccbill' | 'epoch';
+// stripe: 一般コンテンツ (Premium)
+// ccbill: アダルトコンテンツ (Premium+)
+export type PaymentProvider = 'stripe' | 'ccbill';
 
 // 投げ銭リクエスト
 export interface TipRequest {
