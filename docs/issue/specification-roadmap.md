@@ -16,6 +16,7 @@
 - `06-short-management.md` - ショート動画CRUD・メタデータ管理
 - `07-short-playback.md` - ショート再生・インタラクション
 - `08-live-streaming.md` - ライブ配信・WebRTC/HLS・SuperChat
+- `14-netflix-content.md` - Netflixコンテンツ（映画・シリーズ）・IP権利管理
 
 #### Phase 3: 収益化・ソーシャル
 - `09-monetization.md` - 投げ銭・収益分配・出金管理
