@@ -29,8 +29,6 @@ export default function PlanCard({ plan, onUpgrade }: PlanCardProps) {
         return 'Stripe';
       case 'ccbill':
         return 'CCBill';
-      case 'epoch':
-        return 'Epoch';
       default:
         return plan.payment_provider.toUpperCase();
     }

@@ -415,6 +415,172 @@ Authorization: Bearer <access_token>
 
 ---
 
+## Payment Endpoint Aliases (Frontend Compatibility)
+
+### POST /api/payment/{provider}/checkout
+
+**Description**: Create a payment checkout session (frontend-compatible alias).
+
+**Path Parameters**:
+- `provider`: Payment provider (`stripe` | `ccbill`)
+
+**Authentication**: Required (JWT token)
+
+**Request Headers**:
+```json
+{
+  "Authorization": "Bearer <jwt_token>",
+  "Content-Type": "application/json"
+}
+```
+
+**Request Body**:
+```json
+{
+  "plan_id": "plan_premium",
+  "return_url": "https://example.com/success",
+  "cancel_url": "https://example.com/cancel"
+}
+```
+
+**Response (200 OK)**:
+```json
+{
+  "success": true,
+  "payment_url": "https://checkout.stripe.com/c/pay/cs_test_xxx",
+  "provider": "stripe"
+}
+```
+
+**Error Responses**:
+- `400 Bad Request`: Invalid plan_id or provider
+- `401 Unauthorized`: Missing or invalid JWT token
+- `500 Internal Server Error`: Payment provider API error
+
+**Note**: This endpoint is an alias for:
+- `/api/subscriptions/create-checkout` (Stripe)
+- `/api/subscriptions/create-ccbill-checkout` (CCBill)
+
+**Examples**:
+
+```bash
+# Stripe checkout
+curl -X POST https://api.example.com/api/payment/stripe/checkout \
+  -H "Authorization: Bearer eyJhbGc..." \
+  -H "Content-Type: application/json" \
+  -d '{
+    "plan_id": "plan_premium",
+    "return_url": "https://example.com/success",
+    "cancel_url": "https://example.com/cancel"
+  }'
+
+# CCBill checkout
+curl -X POST https://api.example.com/api/payment/ccbill/checkout \
+  -H "Authorization: Bearer eyJhbGc..." \
+  -H "Content-Type: application/json" \
+  -d '{
+    "plan_id": "plan_premium_plus",
+    "return_url": "https://example.com/success",
+    "cancel_url": "https://example.com/cancel"
+  }'
+```
+
+---
+
+### POST /api/payment/{provider}/tip
+
+**Description**: Send a tip to content creator (frontend-compatible alias).
+
+**Path Parameters**:
+- `provider`: Payment provider (`stripe` | `ccbill`)
+
+**Authentication**: Required (JWT token)
+
+**Request Headers**:
+```json
+{
+  "Authorization": "Bearer <jwt_token>",
+  "Content-Type": "application/json"
+}
+```
+
+**Request Body**:
+```json
+{
+  "content_id": "video_123",
+  "content_type": "video",
+  "amount": 500,
+  "message": "応援しています！"
+}
+```
+
+**Field Descriptions**:
+- `content_id`: ID of video, short, or live stream
+- `content_type`: Type of content (`video` | `short` | `live`)
+- `amount`: Tip amount in JPY (minimum: 100)
+- `message`: Optional message to creator (max 200 chars)
+
+**Response (200 OK)**:
+```json
+{
+  "success": true,
+  "payment_url": "https://checkout.stripe.com/c/pay/cs_test_yyy",
+  "provider": "stripe",
+  "tip_id": "tip_abc123"
+}
+```
+
+**Error Responses**:
+- `400 Bad Request`: Invalid amount or content_id
+- `401 Unauthorized`: Missing or invalid JWT token
+- `404 Not Found`: Content not found
+- `500 Internal Server Error`: Payment provider API error
+
+**Business Rules**:
+- Minimum tip: ¥100
+- Maximum tip: ¥100,000
+- Provider selection:
+  - Adult content → `ccbill` required
+  - General content → `stripe` required
+- Platform fee: 30%
+- Creator receives 70% after 14-day hold period
+
+**Note**: This endpoint is an alias for `/api/tips/send`.
+
+**Examples**:
+
+```bash
+# Stripe tip (general content)
+curl -X POST https://api.example.com/api/payment/stripe/tip \
+  -H "Authorization: Bearer eyJhbGc..." \
+  -H "Content-Type: application/json" \
+  -d '{
+    "content_id": "video_123",
+    "content_type": "video",
+    "amount": 500,
+    "message": "Great video!"
+  }'
+
+# CCBill tip (adult content)
+curl -X POST https://api.example.com/api/payment/ccbill/tip \
+  -H "Authorization: Bearer eyJhbGc..." \
+  -H "Content-Type: application/json" \
+  -d '{
+    "content_id": "video_456",
+    "content_type": "video",
+    "amount": 1000,
+    "message": "応援しています！"
+  }'
+```
+
+**Implementation Note**:
+Server MUST validate that the correct provider is used for the content type:
+- Check `is_adult` flag on content
+- Reject if `stripe` used for adult content
+- Reject if `ccbill` used for non-adult content
+
+---
+
 ## Related Documents
 
 - `specs/features/01-authentication.md` - Authentication API details

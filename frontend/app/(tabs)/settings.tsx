@@ -184,15 +184,13 @@ export default function SettingsScreen() {
     await executePlanChange(targetPlanId);
   };
 
-  const getPaymentProviderDisplayName = (provider: 'stripe' | 'ccbill' | 'epoch' | null): string => {
+  const getPaymentProviderDisplayName = (provider: 'stripe' | 'ccbill' | null): string => {
     if (!provider) return '';
     switch (provider) {
       case 'stripe':
         return 'Stripe';
       case 'ccbill':
         return 'CCBill';
-      case 'epoch':
-        return 'Epoch';
       default:
         return '';
     }

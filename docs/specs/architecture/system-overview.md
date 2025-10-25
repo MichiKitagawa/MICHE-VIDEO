@@ -418,7 +418,7 @@ backend/src/
 │       └── error-codes.ts
 │
 ├── container.ts               # DI Container (InversifyJS)
-├── app.ts                     # Express App Setup
+├── app.ts                     # Fastify App Setup
 └── server.ts                  # Entry Point
 ```
 
