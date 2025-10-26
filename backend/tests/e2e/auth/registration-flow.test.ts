@@ -19,7 +19,7 @@ test.describe('User Registration and Login Flow', () => {
 
   test('should complete full registration and login flow', async ({ page }) => {
     // 1. Navigate to registration page
-    await page.goto('/register');
+    await page.goto('/auth');
     await expect(page).toHaveTitle(/登録|Register/);
 
     // 2. Fill in registration form
@@ -51,7 +51,7 @@ test.describe('User Registration and Login Flow', () => {
     await page.click('text=/ログアウト|logout/i');
 
     // 10. Should redirect to login page
-    await expect(page).toHaveURL(/login/);
+    await expect(page).toHaveURL(/auth/);
 
     // 11. Login with credentials
     await page.fill('input[name="email"]', testEmail);
@@ -65,7 +65,7 @@ test.describe('User Registration and Login Flow', () => {
 
   test('should handle registration with existing email', async ({ page }) => {
     // First registration
-    await page.goto('/register');
+    await page.goto('/auth');
     await page.fill('input[name="email"]', testEmail);
     await page.fill('input[name="password"]', testPassword);
     await page.fill('input[name="name"]', testName);
@@ -79,7 +79,7 @@ test.describe('User Registration and Login Flow', () => {
     await page.click('text=/ログアウト|logout/i');
 
     // Try to register again with same email
-    await page.goto('/register');
+    await page.goto('/auth');
     await page.fill('input[name="email"]', testEmail);
     await page.fill('input[name="password"]', 'DifferentPass123!');
     await page.fill('input[name="name"]', 'Different Name');
@@ -91,7 +91,7 @@ test.describe('User Registration and Login Flow', () => {
   });
 
   test('should validate password requirements', async ({ page }) => {
-    await page.goto('/register');
+    await page.goto('/auth');
 
     await page.fill('input[name="email"]', testEmail);
     await page.fill('input[name="password"]', 'weak'); // Weak password
@@ -106,7 +106,7 @@ test.describe('User Registration and Login Flow', () => {
 
   test('should persist login across page reloads', async ({ page }) => {
     // Register and login
-    await page.goto('/register');
+    await page.goto('/auth');
     await page.fill('input[name="email"]', testEmail);
     await page.fill('input[name="password"]', testPassword);
     await page.fill('input[name="name"]', testName);
@@ -124,10 +124,10 @@ test.describe('User Registration and Login Flow', () => {
 
   test('should redirect to login when accessing protected route', async ({ page }) => {
     // Try to access protected route without login
-    await page.goto('/settings');
+    await page.goto('/(tabs)/settings');
 
     // Should redirect to login
-    await expect(page).toHaveURL(/login/);
+    await expect(page).toHaveURL(/auth/);
   });
 });
 
@@ -137,7 +137,7 @@ test.describe('Email Verification Flow', () => {
 
   test('should display unverified email banner', async ({ page }) => {
     // Register
-    await page.goto('/register');
+    await page.goto('/auth');
     await page.fill('input[name="email"]', testEmail);
     await page.fill('input[name="password"]', testPassword);
     await page.fill('input[name="name"]', 'Verify User');
@@ -150,7 +150,7 @@ test.describe('Email Verification Flow', () => {
 
   test('should allow resending verification email', async ({ page }) => {
     // Register
-    await page.goto('/register');
+    await page.goto('/auth');
     await page.fill('input[name="email"]', testEmail);
     await page.fill('input[name="password"]', testPassword);
     await page.fill('input[name="name"]', 'Verify User');
@@ -182,7 +182,7 @@ test.describe('Session Management', () => {
     const page2 = await context2.newPage();
 
     // Register in first context
-    await page1.goto('/register');
+    await page1.goto('/auth');
     await page1.fill('input[name="email"]', testEmail);
     await page1.fill('input[name="password"]', testPassword);
     await page1.fill('input[name="name"]', 'Session User');
@@ -191,7 +191,7 @@ test.describe('Session Management', () => {
     await expect(page1).toHaveURL(/(tabs\/videos|dashboard)/);
 
     // Login in second context
-    await page2.goto('/login');
+    await page2.goto('/auth');
     await page2.fill('input[name="email"]', testEmail);
     await page2.fill('input[name="password"]', testPassword);
     await page2.click('button[type="submit"]');
@@ -215,14 +215,14 @@ test.describe('Session Management', () => {
     const page2 = await context2.newPage();
 
     // Register
-    await page1.goto('/register');
+    await page1.goto('/auth');
     await page1.fill('input[name="email"]', testEmail);
     await page1.fill('input[name="password"]', testPassword);
     await page1.fill('input[name="name"]', 'Session User');
     await page1.click('button[type="submit"]');
 
     // Login in second context
-    await page2.goto('/login');
+    await page2.goto('/auth');
     await page2.fill('input[name="email"]', testEmail);
     await page2.fill('input[name="password"]', testPassword);
     await page2.click('button[type="submit"]');
@@ -231,7 +231,7 @@ test.describe('Session Management', () => {
     await page1.click('[aria-label="Settings"]');
     await page1.click('text=/ログアウト|logout/i');
 
-    await expect(page1).toHaveURL(/login/);
+    await expect(page1).toHaveURL(/auth/);
 
     // Second context should still be logged in
     await page2.reload();

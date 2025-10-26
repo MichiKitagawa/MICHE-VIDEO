@@ -2,12 +2,12 @@ import { test, expect } from '@playwright/test';
 
 test.describe('Channel Management E2E - Settings Flow', () => {
   test('should update channel settings and view analytics', async ({ page }) => {
-    await page.goto('/login');
+    await page.goto('/auth');
     await page.fill('input[name="email"]', 'creator@example.com');
     await page.fill('input[name="password"]', 'TestPass123!');
     await page.click('button[type="submit"]');
 
-    await page.goto('/creation');
+    await page.goto('/creation/');
     await page.click('text=設定');
 
     await page.fill('input[name="channel_name"]', '田中太郎のプログラミングチャンネル');

@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 
 test.describe('Recommendations E2E - Feed Flow', () => {
   test('should complete recommendation feed to playback flow', async ({ page }) => {
-    await page.goto('/login');
+    await page.goto('/auth');
     await page.fill('input[name="email"]', 'user@example.com');
     await page.fill('input[name="password"]', 'TestPass123!');
     await page.click('button[type="submit"]');

@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 
 test.describe('Trending E2E - Trending Flow', () => {
   test('should view trending videos', async ({ page }) => {
-    await page.goto('/trending');
+    await page.goto('/(tabs)/videos');
 
     await expect(page.locator('h1')).toContainText('トレンド');
     await expect(page.locator('.video-card')).toHaveCount.greaterThan(0);

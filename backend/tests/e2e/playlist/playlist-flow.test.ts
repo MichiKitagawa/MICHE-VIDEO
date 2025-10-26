@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 
 test.describe('Playlist E2E - Full Flow', () => {
   test('should complete full playlist creation and playback flow', async ({ page }) => {
-    await page.goto('/login');
+    await page.goto('/auth');
     await page.fill('input[name="email"]', 'user@example.com');
     await page.fill('input[name="password"]', 'TestPass123!');
     await page.click('button[type="submit"]');

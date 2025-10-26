@@ -3,13 +3,13 @@ import { test, expect } from '@playwright/test';
 test.describe('Content Delivery E2E - Complete Upload Flow', () => {
   test('should complete full upload to CDN flow for video', async ({ page }) => {
     // Login
-    await page.goto('/login');
+    await page.goto('/auth');
     await page.fill('input[name="email"]', 'user@example.com');
     await page.fill('input[name="password"]', 'TestPass123!');
     await page.click('button[type="submit"]');
 
     // Navigate to upload page
-    await page.goto('/upload');
+    await page.goto('/upload-video');
     await expect(page.locator('h1')).toContainText('動画をアップロード');
 
     // Select file
@@ -52,7 +52,7 @@ test.describe('Content Delivery E2E - Complete Upload Flow', () => {
     await expect(page.locator('.transcode-message')).toContainText('トランスコード中');
 
     // Navigate to video management
-    await page.goto('/(tabs)/creation');
+    await page.goto('/creation/');
     await page.click('text=動画');
 
     // Verify uploaded video appears in list
@@ -72,13 +72,13 @@ test.describe('Content Delivery E2E - Complete Upload Flow', () => {
   });
 
   test('should complete full upload to CDN flow for short', async ({ page }) => {
-    await page.goto('/login');
+    await page.goto('/auth');
     await page.fill('input[name="email"]', 'user@example.com');
     await page.fill('input[name="password"]', 'TestPass123!');
     await page.click('button[type="submit"]');
 
     // Navigate to short upload
-    await page.goto('/upload/short');
+    await page.goto('/upload-short');
     await expect(page.locator('h1')).toContainText('ショートをアップロード');
 
     // Select file
@@ -102,18 +102,18 @@ test.describe('Content Delivery E2E - Complete Upload Flow', () => {
     });
 
     // Verify in short list
-    await page.goto('/(tabs)/creation');
+    await page.goto('/creation/');
     await page.click('text=ショート');
     await expect(page.locator('.short-item')).toContainText('テストショート');
   });
 
   test('should handle upload error gracefully', async ({ page }) => {
-    await page.goto('/login');
+    await page.goto('/auth');
     await page.fill('input[name="email"]', 'user@example.com');
     await page.fill('input[name="password"]', 'TestPass123!');
     await page.click('button[type="submit"]');
 
-    await page.goto('/upload');
+    await page.goto('/upload-video');
 
     // Try to upload invalid file type
     const fileInput = page.locator('input[type="file"]');
@@ -132,12 +132,12 @@ test.describe('Content Delivery E2E - Complete Upload Flow', () => {
   });
 
   test('should handle large file upload with progress updates', async ({ page }) => {
-    await page.goto('/login');
+    await page.goto('/auth');
     await page.fill('input[name="email"]', 'user@example.com');
     await page.fill('input[name="password"]', 'TestPass123!');
     await page.click('button[type="submit"]');
 
-    await page.goto('/upload');
+    await page.goto('/upload-video');
 
     const fileInput = page.locator('input[type="file"]');
     await fileInput.setInputFiles({
@@ -167,12 +167,12 @@ test.describe('Content Delivery E2E - Complete Upload Flow', () => {
   });
 
   test('should allow pause and resume upload', async ({ page }) => {
-    await page.goto('/login');
+    await page.goto('/auth');
     await page.fill('input[name="email"]', 'user@example.com');
     await page.fill('input[name="password"]', 'TestPass123!');
     await page.click('button[type="submit"]');
 
-    await page.goto('/upload');
+    await page.goto('/upload-video');
 
     const fileInput = page.locator('input[type="file"]');
     await fileInput.setInputFiles({
@@ -202,12 +202,12 @@ test.describe('Content Delivery E2E - Complete Upload Flow', () => {
   });
 
   test('should display transcode progress', async ({ page }) => {
-    await page.goto('/login');
+    await page.goto('/auth');
     await page.fill('input[name="email"]', 'user@example.com');
     await page.fill('input[name="password"]', 'TestPass123!');
     await page.click('button[type="submit"]');
 
-    await page.goto('/upload');
+    await page.goto('/upload-video');
 
     const fileInput = page.locator('input[type="file"]');
     await fileInput.setInputFiles({
@@ -240,12 +240,12 @@ test.describe('Content Delivery E2E - Complete Upload Flow', () => {
   });
 
   test('should validate file size limits', async ({ page }) => {
-    await page.goto('/login');
+    await page.goto('/auth');
     await page.fill('input[name="email"]', 'free@example.com');
     await page.fill('input[name="password"]', 'TestPass123!');
     await page.click('button[type="submit"]');
 
-    await page.goto('/upload');
+    await page.goto('/upload-video');
 
     // Try to upload file exceeding 5GB
     const fileInput = page.locator('input[type="file"]');
@@ -262,12 +262,12 @@ test.describe('Content Delivery E2E - Complete Upload Flow', () => {
   });
 
   test('should show storage quota warning', async ({ page }) => {
-    await page.goto('/login');
+    await page.goto('/auth');
     await page.fill('input[name="email"]', 'free@example.com');
     await page.fill('input[name="password"]', 'TestPass123!');
     await page.click('button[type="submit"]');
 
-    await page.goto('/upload');
+    await page.goto('/upload-video');
 
     // Check storage quota display
     await expect(page.locator('.storage-quota')).toBeVisible();
@@ -285,12 +285,12 @@ test.describe('Content Delivery E2E - Complete Upload Flow', () => {
   });
 
   test('should allow retry on failed upload', async ({ page }) => {
-    await page.goto('/login');
+    await page.goto('/auth');
     await page.fill('input[name="email"]', 'user@example.com');
     await page.fill('input[name="password"]', 'TestPass123!');
     await page.click('button[type="submit"]');
 
-    await page.goto('/upload');
+    await page.goto('/upload-video');
 
     const fileInput = page.locator('input[type="file"]');
     await fileInput.setInputFiles({

@@ -15,7 +15,7 @@ test.describe('Password Reset Flow', () => {
   test.beforeAll(async ({ browser }) => {
     // Setup: Create a test user
     const page = await browser.newPage();
-    await page.goto('/register');
+    await page.goto('/auth');
     await page.fill('input[name="email"]', testEmail);
     await page.fill('input[name="password"]', originalPassword);
     await page.fill('input[name="name"]', 'Reset Test User');
@@ -25,7 +25,7 @@ test.describe('Password Reset Flow', () => {
 
   test('should complete full password reset flow', async ({ page }) => {
     // 1. Go to login page
-    await page.goto('/login');
+    await page.goto('/auth');
 
     // 2. Click forgot password link
     await page.click('text=/パスワードを忘れた|forgot password/i');
@@ -58,7 +58,7 @@ test.describe('Password Reset Flow', () => {
     // await expect(page.locator('text=/パスワードをリセット|password reset/i')).toBeVisible();
 
     // // Login with new password
-    // await page.goto('/login');
+    // await page.goto('/auth');
     // await page.fill('input[name="email"]', testEmail);
     // await page.fill('input[name="password"]', newPassword);
     // await page.click('button[type="submit"]');
@@ -67,7 +67,7 @@ test.describe('Password Reset Flow', () => {
   });
 
   test('should validate email format in reset request', async ({ page }) => {
-    await page.goto('/forgot-password');
+    await page.goto('/auth');
 
     // Enter invalid email
     await page.fill('input[name="email"]', 'invalid-email');
@@ -79,7 +79,7 @@ test.describe('Password Reset Flow', () => {
   });
 
   test('should not reveal if email exists', async ({ page }) => {
-    await page.goto('/forgot-password');
+    await page.goto('/auth');
 
     // Request reset for non-existent email
     await page.fill('input[name="email"]', 'nonexistent@example.com');
@@ -137,7 +137,7 @@ test.describe('Change Password in Settings', () => {
 
   test.beforeEach(async ({ page }) => {
     // Register and login
-    await page.goto('/register');
+    await page.goto('/auth');
     await page.fill('input[name="email"]', testEmail);
     await page.fill('input[name="password"]', currentPassword);
     await page.fill('input[name="name"]', 'Change Test User');
@@ -166,7 +166,7 @@ test.describe('Change Password in Settings', () => {
     await page.click('text=/ログアウト|logout/i');
 
     // Login with new password
-    await page.goto('/login');
+    await page.goto('/auth');
     await page.fill('input[name="email"]', testEmail);
     await page.fill('input[name="password"]', newPassword);
     await page.click('button[type="submit"]');
@@ -215,7 +215,7 @@ test.describe('Change Password in Settings', () => {
 
     // Login in both
     for (const page of [page1, page2]) {
-      await page.goto('/login');
+      await page.goto('/auth');
       await page.fill('input[name="email"]', testEmail);
       await page.fill('input[name="password"]', currentPassword);
       await page.click('button[type="submit"]');
@@ -231,7 +231,7 @@ test.describe('Change Password in Settings', () => {
 
     // Second session should be logged out
     await page2.reload();
-    await expect(page2).toHaveURL(/login/);
+    await expect(page2).toHaveURL(/auth/);
 
     // Cleanup
     await context1.close();

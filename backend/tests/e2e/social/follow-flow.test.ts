@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 
 test.describe('Social E2E - Follow Flow', () => {
   test('should complete full follow and notification flow', async ({ page }) => {
-    await page.goto('/login');
+    await page.goto('/auth');
     await page.fill('input[name="email"]', 'user1@example.com');
     await page.fill('input[name="password"]', 'TestPass123!');
     await page.click('button[type="submit"]');
@@ -11,8 +11,8 @@ test.describe('Social E2E - Follow Flow', () => {
     await page.click('button:has-text("フォロー")');
     await expect(page.locator('button:has-text("フォロー中")')).toBeVisible();
 
-    await page.goto('/logout');
-    await page.goto('/login');
+    await page.goto('/(tabs)/settings');
+    await page.goto('/auth');
     await page.fill('input[name="email"]', 'user2@example.com');
     await page.fill('input[name="password"]', 'TestPass123!');
     await page.click('button[type="submit"]');

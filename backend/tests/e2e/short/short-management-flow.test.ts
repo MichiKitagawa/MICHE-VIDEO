@@ -14,7 +14,7 @@ import { test, expect } from '@playwright/test';
 test.describe('Short Management E2E', () => {
   test.beforeEach(async ({ page }) => {
     // Login before each test
-    await page.goto('/login');
+    await page.goto('/auth');
     await page.fill('input[name="email"]', 'creator@example.com');
     await page.fill('input[name="password"]', 'TestPass123!');
     await page.click('button[type="submit"]');
@@ -23,7 +23,7 @@ test.describe('Short Management E2E', () => {
 
   test('should create and publish short successfully', async ({ page }) => {
     // Navigate to creation page
-    await page.goto('/creation');
+    await page.goto('/creation/');
     await expect(page).toHaveURL('/creation');
 
     // Click short upload button
@@ -50,14 +50,14 @@ test.describe('Short Management E2E', () => {
     await expect(page.locator('text=公開済み')).toBeVisible({ timeout: 60000 });
 
     // Navigate to my shorts and verify it appears
-    await page.goto('/creation');
+    await page.goto('/creation/');
     await page.click('text=Shorts');
     await expect(page.locator('text=素晴らしいダンス動画')).toBeVisible();
   });
 
   test('should edit short metadata', async ({ page }) => {
     // Navigate to my shorts
-    await page.goto('/creation');
+    await page.goto('/creation/');
     await page.click('text=Shorts');
 
     // Click edit on first short
@@ -75,14 +75,14 @@ test.describe('Short Management E2E', () => {
     await expect(page.locator('text=更新しました')).toBeVisible();
 
     // Verify changes persisted
-    await page.goto('/creation');
+    await page.goto('/creation/');
     await page.click('text=Shorts');
     await expect(page.locator('text=更新されたタイトル')).toBeVisible();
   });
 
   test('should delete short with confirmation', async ({ page }) => {
     // Navigate to my shorts
-    await page.goto('/creation');
+    await page.goto('/creation/');
     await page.click('text=Shorts');
 
     // Get title of first short for verification
@@ -105,7 +105,7 @@ test.describe('Short Management E2E', () => {
   });
 
   test('should handle upload validation errors', async ({ page }) => {
-    await page.goto('/creation');
+    await page.goto('/creation/');
     await page.click('text=ショート動画をアップロード');
 
     // Try to submit without required fields
@@ -117,7 +117,7 @@ test.describe('Short Management E2E', () => {
   });
 
   test('should preview short before publishing', async ({ page }) => {
-    await page.goto('/creation');
+    await page.goto('/creation/');
     await page.click('text=ショート動画をアップロード');
 
     await page.fill('input[name="title"]', 'プレビューテスト');
@@ -136,7 +136,7 @@ test.describe('Short Management E2E', () => {
   });
 
   test('should bulk delete multiple shorts', async ({ page }) => {
-    await page.goto('/creation');
+    await page.goto('/creation/');
     await page.click('text=Shorts');
 
     // Select multiple shorts
@@ -155,7 +155,7 @@ test.describe('Short Management E2E', () => {
   });
 
   test('should change privacy setting', async ({ page }) => {
-    await page.goto('/creation');
+    await page.goto('/creation/');
     await page.click('text=Shorts');
 
     // Click on first short
@@ -170,7 +170,7 @@ test.describe('Short Management E2E', () => {
   });
 
   test('should filter shorts by category', async ({ page }) => {
-    await page.goto('/creation');
+    await page.goto('/creation/');
     await page.click('text=Shorts');
 
     // Apply category filter
@@ -184,7 +184,7 @@ test.describe('Short Management E2E', () => {
   });
 
   test('should sort shorts by view count', async ({ page }) => {
-    await page.goto('/creation');
+    await page.goto('/creation/');
     await page.click('text=Shorts');
 
     // Select sort option
@@ -200,7 +200,7 @@ test.describe('Short Management E2E', () => {
   });
 
   test('should handle video upload progress', async ({ page }) => {
-    await page.goto('/creation');
+    await page.goto('/creation/');
     await page.click('text=ショート動画をアップロード');
 
     await page.fill('input[name="title"]', 'アップロードテスト');

@@ -9,7 +9,7 @@ import { test, expect } from '@playwright/test';
 
 test.describe('Live Streaming E2E', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('/login');
+    await page.goto('/auth');
     await page.fill('input[name="email"]', 'creator@example.com');
     await page.fill('input[name="password"]', 'TestPass123!');
     await page.click('button[type="submit"]');
@@ -17,8 +17,8 @@ test.describe('Live Streaming E2E', () => {
 
   test('should complete full live streaming flow', async ({ page }) => {
     // Navigate to live creation page
-    await page.goto('/creation/live/create');
-    await expect(page).toHaveURL('/creation/live/create');
+    await page.goto('/go-live');
+    await expect(page).toHaveURL('/go-live');
 
     // Fill in live stream info
     await page.fill('input[name="title"]', 'E2Eテストライブ配信');
@@ -79,7 +79,7 @@ test.describe('Live Streaming E2E', () => {
   });
 
   test('should show live stream statistics for creator', async ({ page }) => {
-    await page.goto('/creation/live/stats/live_123456');
+    await page.goto('/creation/');
 
     // Verify stats elements
     await expect(page.locator('[data-testid="current-viewers"]')).toBeVisible();
@@ -89,7 +89,7 @@ test.describe('Live Streaming E2E', () => {
   });
 
   test('should end live stream with confirmation', async ({ page }) => {
-    await page.goto('/creation/live/active');
+    await page.goto('/go-live');
 
     // Click end stream button
     await page.click('button:has-text("配信を終了")');

@@ -19,7 +19,7 @@ test.describe('Video Playback Complete Flow', () => {
 
   test.beforeEach(async ({ page: testPage }) => {
     page = testPage;
-    await page.goto('/login');
+    await page.goto('/auth');
     await page.fill('input[name="email"]', 'test@example.com');
     await page.fill('input[name="password"]', 'TestPass123!');
     await page.click('button[type="submit"]');

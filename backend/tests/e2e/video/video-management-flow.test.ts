@@ -20,7 +20,7 @@ test.describe('Video Management Complete Flow', () => {
     page = testPage;
 
     // Setup: Login
-    await page.goto('/login');
+    await page.goto('/auth');
     await page.fill('input[name="email"]', 'test@example.com');
     await page.fill('input[name="password"]', 'TestPass123!');
     await page.click('button[type="submit"]');
@@ -63,7 +63,7 @@ test.describe('Video Management Complete Flow', () => {
     expect(videoId).toBeTruthy();
 
     // Step 6: Verify video appears in My Videos
-    await page.goto('/(tabs)/creation');
+    await page.goto('/creation/');
     await expect(page.locator('text=完全なワークフローテスト動画')).toBeVisible();
 
     // Step 7: Edit video
@@ -119,7 +119,7 @@ test.describe('Video Management Complete Flow', () => {
     await expect(page.locator('[data-testid="video-tags"]')).toContainText('チュートリアル');
 
     // Step 15: Delete video
-    await page.goto('/(tabs)/creation');
+    await page.goto('/creation/');
     await page.click(`[data-testid="video-${videoId}-menu"]`);
     await page.click('text=削除');
 
@@ -239,7 +239,7 @@ test.describe('Video Management Complete Flow', () => {
     await expect(page.locator('text=動画を作成しました')).toBeVisible();
 
     // Go to My Videos
-    await page.goto('/(tabs)/creation');
+    await page.goto('/creation/');
 
     // Should show processing badge
     await expect(page.locator('[data-testid="status-processing"]')).toBeVisible();
@@ -341,7 +341,7 @@ test.describe('Video Management Complete Flow', () => {
   });
 
   test('should sort My Videos by different criteria', async () => {
-    await page.goto('/(tabs)/creation');
+    await page.goto('/creation/');
 
     // Sort by newest
     await page.selectOption('[data-testid="sort-select"]', 'newest');
@@ -361,7 +361,7 @@ test.describe('Video Management Complete Flow', () => {
   });
 
   test('should filter My Videos by status', async () => {
-    await page.goto('/(tabs)/creation');
+    await page.goto('/creation/');
 
     // Filter by processing
     await page.click('[data-testid="filter-processing"]');
@@ -381,7 +381,7 @@ test.describe('Video Management Complete Flow', () => {
   });
 
   test('should search My Videos', async () => {
-    await page.goto('/(tabs)/creation');
+    await page.goto('/creation/');
 
     // Search for video
     await page.fill('[data-testid="search-input"]', 'テスト');
@@ -395,7 +395,7 @@ test.describe('Video Management Complete Flow', () => {
     // Cleanup: Delete test video if it exists
     if (videoId) {
       try {
-        await page.goto('/(tabs)/creation');
+        await page.goto('/creation/');
         await page.click(`[data-testid="video-${videoId}-menu"]`);
         await page.click('text=削除');
         await page.click('button:has-text("削除する")');
