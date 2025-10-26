@@ -168,10 +168,14 @@ async function getOrCreateStripeCustomer(userId: string) {
 
 **Step 3: Handle Success Redirect**:
 ```typescript
-// Client-side (Next.js page)
+// Client-side (Expo Router)
+import { useEffect } from 'react';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import { View, Text, ActivityIndicator } from 'react-native';
+
 export default function CheckoutSuccess() {
   const router = useRouter();
-  const { session_id } = router.query;
+  const { session_id } = useLocalSearchParams<{ session_id?: string }>();
 
   useEffect(() => {
     if (session_id) {
@@ -182,7 +186,7 @@ export default function CheckoutSuccess() {
 
         if (subscription.status === 'active') {
           clearInterval(interval);
-          router.push('/dashboard?subscription_activated=true');
+          router.push('/(tabs)/videos?subscription_activated=true');
         }
       }, 2000);
 
@@ -190,7 +194,12 @@ export default function CheckoutSuccess() {
     }
   }, [session_id]);
 
-  return <div>Processing your subscription...</div>;
+  return (
+    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+      <ActivityIndicator size="large" />
+      <Text>Processing your subscription...</Text>
+    </View>
+  );
 }
 ```
 

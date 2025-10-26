@@ -669,17 +669,35 @@ const cwClient = new CloudWatchLogsClient({ region: 'ap-northeast-1' });
 
 **Purpose**: Error tracking and monitoring
 
-**SDK Installation**:
+**Frontend SDK Installation (Expo Router)**:
 ```bash
-npm install @sentry/nextjs
+npx expo install @sentry/react-native
 ```
 
-**Configuration**:
+**Frontend Configuration (Expo Router)**:
 ```typescript
-import * as Sentry from '@sentry/nextjs';
+import * as Sentry from '@sentry/react-native';
 
 Sentry.init({
-  dsn: process.env.NEXT_PUBLIC_SENTRY_DSN,
+  dsn: process.env.EXPO_PUBLIC_SENTRY_DSN,
+  environment: process.env.NODE_ENV,
+  tracesSampleRate: 0.1,
+  enableAutoSessionTracking: true,
+  sessionTrackingIntervalMillis: 10000,
+});
+```
+
+**Backend SDK Installation (Node.js)**:
+```bash
+npm install @sentry/node
+```
+
+**Backend Configuration (Fastify)**:
+```typescript
+import * as Sentry from '@sentry/node';
+
+Sentry.init({
+  dsn: process.env.SENTRY_DSN,
   environment: process.env.NODE_ENV,
   tracesSampleRate: 0.1,
 });
@@ -687,7 +705,11 @@ Sentry.init({
 
 **Environment Variables**:
 ```bash
-NEXT_PUBLIC_SENTRY_DSN=https://xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx@o123456.ingest.sentry.io/1234567
+# Frontend (Expo)
+EXPO_PUBLIC_SENTRY_DSN=https://xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx@o123456.ingest.sentry.io/1234567
+
+# Backend (Node.js)
+SENTRY_DSN=https://xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx@o123456.ingest.sentry.io/7654321
 SENTRY_AUTH_TOKEN=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 ```
 
