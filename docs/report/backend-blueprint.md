@@ -20,7 +20,7 @@
 | キャッシュ | Redis Cluster | セッション、レート制御、短期キャッシュ | TTL 設計は `system-overview.md` の9.1参照 |
 | データ | PostgreSQL、Elasticsearch | トランザクション、全文検索 | Prisma 5.x によるORM |
 | ストレージ | S3 (アップロード/配信用) | 元動画、変換済み動画、ライブ録画 | `media_files` テーブルで索引 |
-| 外部連携 | Stripe, CCBill (+将来的 Epoch 対応), AWS SES/SNS | 決済、通知 | 決済仕様は §5.1 参照 |
+| 外部連携 | Stripe, CCBill, AWS SES/SNS | 決済、通知 | 決済仕様は §5.1 参照 |
 
 ## 3. モジュール別実装指針
 モジュール構成は `docs/specs/features` の14カテゴリと揃える。各モジュールは `modules/<domain>` にドメイン層・アプリ層・インフラ層を分離して実装する。
@@ -29,7 +29,7 @@
 - 責務: 会員登録、ログイン/リフレッシュ、プロフィール更新、パスワード管理、RBAC。
 - 主API: `/api/auth/register|login|refresh|logout|me|profile|change-password|request-password-reset|reset-password`。
 - データ: `users`, `user_sessions`, `email_verifications`, `password_resets`。
-- フロント同期: `/auth`, `/login`, `/register`, `/(tabs)/settings` プロファイルタブ。
+- フロント同期: `/auth` (統合認証ページ), `/(tabs)/settings` プロファイルタブ。
 
 ### 3.2 サブスクリプション & 決済 (`features/02-subscription.md`, `references/payment-integration.md`)
 - 責務: プラン管理 (Free/Premium/Premium+)、チェックアウトURL生成、プラン変更、キャンセル、決済履歴、Webhook処理。
@@ -114,8 +114,9 @@
 ### 5.1 決済基盤
 - Stripe: 一般コンテンツ (Free→Premium) / Tips 非成人。`payment_methods` テーブルで customer/payment_method ID を管理。
 - CCBill: Premium+ プラン / 成人向け Tips。Webhook はイベント重複を考慮し idempotent 処理。
-- Epoch: フロント実装が想定しているため、将来対応か、または API レイヤで `provider: 'epoch'` 要求時に `501` を返し UI へ通知。
 - `/api/payments/provider` は `/api/payment/${provider}` シリーズと整合するよう別名エンドポイントを用意 (詳細は §7.2 不整合参照)。
+
+**注記**: Epoch決済プロバイダーは削除済み。フロントエンド実装は Stripe と CCBill のみをサポート。
 
 ### 5.2 メディア処理
 - Upload: `POST /api/upload/initiate` で S3 署名URLを払い出し、完了後 MediaConvert ジョブ投入 (`transcoding_jobs` トラッキング)。
@@ -148,8 +149,10 @@
 ## 9. 既知の課題・フォローアップ
 - 決済 API エンドポイント命名・プロバイダー種別の不整合は §7.2 の整合性レビュー文書を参照。
 - Express/Fastify の記述差異を全ドキュメントで統一する。
-- Epoch 対応有無をプロダクト方針として決定し、フロントのフォールバック挙動を定義する。
 - WithdrawalMethod `type` の許容値をバックエンドでも拡張し、バリデーションを共有する。
+
+**解決済み**:
+- ✅ Epoch決済プロバイダーは削除済み。Stripe と CCBill のみサポート。
 
 以上。
 

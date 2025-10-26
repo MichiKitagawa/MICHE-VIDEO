@@ -743,7 +743,7 @@ import { test, expect } from '@playwright/test';
 test.describe('Monetization E2E - Tip Flow', () => {
   test('should complete full tip sending and earnings flow', async ({ page }) => {
     // 視聴者ログイン
-    await page.goto('/login');
+    await page.goto('/auth');
     await page.fill('input[name="email"]', 'viewer@example.com');
     await page.fill('input[name="password"]', 'TestPass123!');
     await page.click('button[type="submit"]');
@@ -770,7 +770,7 @@ test.describe('Monetization E2E - Tip Flow', () => {
 
     // クリエイターでログイン
     await page.goto('/logout');
-    await page.goto('/login');
+    await page.goto('/auth');
     await page.fill('input[name="email"]', 'creator@example.com');
     await page.fill('input[name="password"]', 'TestPass123!');
     await page.click('button[type="submit"]');
@@ -799,7 +799,7 @@ test.describe('Monetization E2E - Tip Flow', () => {
 test.describe('Monetization E2E - Withdrawal Flow', () => {
   test('should complete full withdrawal registration and request flow', async ({ page }) => {
     // クリエイターログイン
-    await page.goto('/login');
+    await page.goto('/auth');
     await page.fill('input[name="email"]', 'creator@example.com');
     await page.fill('input[name="password"]', 'TestPass123!');
     await page.click('button[type="submit"]');

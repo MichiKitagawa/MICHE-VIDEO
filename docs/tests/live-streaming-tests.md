@@ -484,7 +484,7 @@ import { test, expect } from '@playwright/test';
 test.describe('Live Streaming E2E', () => {
   test('should complete full live streaming flow', async ({ page }) => {
     // ログイン
-    await page.goto('/login');
+    await page.goto('/auth');
     await page.fill('input[name="email"]', 'creator@example.com');
     await page.fill('input[name="password"]', 'TestPass123!');
     await page.click('button[type="submit"]');
@@ -517,7 +517,7 @@ test.describe('Live Streaming E2E', () => {
   });
 
   test('should interact with live chat', async ({ page }) => {
-    await page.goto('/login');
+    await page.goto('/auth');
     await page.fill('input[name="email"]', 'viewer@example.com');
     await page.fill('input[name="password"]', 'TestPass123!');
     await page.click('button[type="submit"]');

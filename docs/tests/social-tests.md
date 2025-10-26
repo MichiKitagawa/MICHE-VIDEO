@@ -520,7 +520,7 @@ import { test, expect } from '@playwright/test';
 test.describe('Social E2E - Follow Flow', () => {
   test('should complete full follow and notification flow', async ({ page }) => {
     // User1 ログイン
-    await page.goto('/login');
+    await page.goto('/auth');
     await page.fill('input[name="email"]', 'user1@example.com');
     await page.fill('input[name="password"]', 'TestPass123!');
     await page.click('button[type="submit"]');
@@ -539,7 +539,7 @@ test.describe('Social E2E - Follow Flow', () => {
 
     // User2 でログイン（フォローされたユーザー）
     await page.goto('/logout');
-    await page.goto('/login');
+    await page.goto('/auth');
     await page.fill('input[name="email"]', 'user2@example.com');
     await page.fill('input[name="password"]', 'TestPass123!');
     await page.click('button[type="submit"]');
@@ -564,7 +564,7 @@ test.describe('Social E2E - Follow Flow', () => {
 test.describe('Social E2E - Notification Settings', () => {
   test('should update notification settings', async ({ page }) => {
     // ログイン
-    await page.goto('/login');
+    await page.goto('/auth');
     await page.fill('input[name="email"]', 'user1@example.com');
     await page.fill('input[name="password"]', 'TestPass123!');
     await page.click('button[type="submit"]');

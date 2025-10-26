@@ -849,7 +849,7 @@ import { test, expect } from '@playwright/test';
 
 test.describe('Netflix Movie E2E - Playback Flow', () => {
   test('should complete movie search to playback flow', async ({ page }) => {
-    await page.goto('/login');
+    await page.goto('/auth');
     await page.fill('input[name="email"]', 'premium@example.com');
     await page.fill('input[name="password"]', 'TestPass123!');
     await page.click('button[type="submit"]');
@@ -891,7 +891,7 @@ test.describe('Netflix Movie E2E - Playback Flow', () => {
 ```typescript
 test.describe('Netflix Series E2E - Episode Playback Flow', () => {
   test('should complete series episode playback flow', async ({ page }) => {
-    await page.goto('/login');
+    await page.goto('/auth');
     await page.fill('input[name="email"]', 'premium@example.com');
     await page.fill('input[name="password"]', 'TestPass123!');
     await page.click('button[type="submit"]');

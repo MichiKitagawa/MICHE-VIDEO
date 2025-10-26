@@ -832,7 +832,7 @@ import { test, expect } from '@playwright/test';
 
 test.describe('Short Management E2E', () => {
   test('should create and publish short successfully', async ({ page }) => {
-    await page.goto('/login');
+    await page.goto('/auth');
     await page.fill('input[name="email"]', 'creator@example.com');
     await page.fill('input[name="password"]', 'TestPass123!');
     await page.click('button[type="submit"]');
@@ -866,7 +866,7 @@ test.describe('Short Management E2E', () => {
   });
 
   test('should edit short metadata', async ({ page }) => {
-    await page.goto('/login');
+    await page.goto('/auth');
     await page.fill('input[name="email"]', 'creator@example.com');
     await page.fill('input[name="password"]', 'TestPass123!');
     await page.click('button[type="submit"]');
@@ -890,7 +890,7 @@ test.describe('Short Management E2E', () => {
   });
 
   test('should delete short with confirmation', async ({ page }) => {
-    await page.goto('/login');
+    await page.goto('/auth');
     await page.fill('input[name="email"]', 'creator@example.com');
     await page.fill('input[name="password"]', 'TestPass123!');
     await page.click('button[type="submit"]');

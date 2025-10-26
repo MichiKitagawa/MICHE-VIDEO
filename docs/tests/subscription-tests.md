@@ -524,7 +524,7 @@ import { test, expect } from '@playwright/test';
 test.describe('Subscription Upgrade Flow (Stripe)', () => {
   test('should upgrade to Premium plan', async ({ page }) => {
     // 1. ログイン
-    await page.goto('/login');
+    await page.goto('/auth');
     await page.fill('input[name="email"]', 'free@example.com');
     await page.fill('input[name="password"]', 'FreePass123!');
     await page.click('button[type="submit"]');

@@ -518,7 +518,7 @@ import { test, expect } from '@playwright/test';
 test.describe('Video Playback E2E', () => {
   test('should watch video, like, and comment', async ({ page }) => {
     // Login
-    await page.goto('/login');
+    await page.goto('/auth');
     await page.fill('input[name="email"]', 'test@example.com');
     await page.fill('input[name="password"]', 'TestPass123!');
     await page.click('button[type="submit"]');
@@ -546,7 +546,7 @@ test.describe('Video Playback E2E', () => {
   });
 
   test('should resume from last watched position', async ({ page }) => {
-    await page.goto('/login');
+    await page.goto('/auth');
     await page.fill('input[name="email"]', 'test@example.com');
     await page.fill('input[name="password"]', 'TestPass123!');
     await page.click('button[type="submit"]');
@@ -577,7 +577,7 @@ test.describe('Video Playback E2E', () => {
 
 ```typescript
 test('should autoplay recommended videos', async ({ page }) => {
-  await page.goto('/login');
+  await page.goto('/auth');
   await page.fill('input[name="email"]', 'test@example.com');
   await page.fill('input[name="password"]', 'TestPass123!');
   await page.click('button[type="submit"]');

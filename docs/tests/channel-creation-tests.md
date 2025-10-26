@@ -655,7 +655,7 @@ import { test, expect } from '@playwright/test';
 
 test.describe('Creator Application E2E - Full Flow', () => {
   test('should complete creator application process', async ({ page }) => {
-    await page.goto('/login');
+    await page.goto('/auth');
     await page.fill('input[name="email"]', 'user@example.com');
     await page.fill('input[name="password"]', 'TestPass123!');
     await page.click('button[type="submit"]');
@@ -686,7 +686,7 @@ test.describe('Creator Application E2E - Full Flow', () => {
 ```typescript
 test.describe('Channel Management E2E - Settings Flow', () => {
   test('should update channel settings and view analytics', async ({ page }) => {
-    await page.goto('/login');
+    await page.goto('/auth');
     await page.fill('input[name="email"]', 'creator@example.com');
     await page.fill('input[name="password"]', 'TestPass123!');
     await page.click('button[type="submit"]');

@@ -711,7 +711,7 @@ import { test, expect } from '@playwright/test';
 
 test.describe('Short Playback E2E', () => {
   test('should browse shorts feed and engage', async ({ page }) => {
-    await page.goto('/login');
+    await page.goto('/auth');
     await page.fill('input[name="email"]', 'user@example.com');
     await page.fill('input[name="password"]', 'TestPass123!');
     await page.click('button[type="submit"]');
@@ -752,7 +752,7 @@ test.describe('Short Playback E2E', () => {
   });
 
   test('should filter shorts by category', async ({ page }) => {
-    await page.goto('/login');
+    await page.goto('/auth');
     await page.fill('input[name="email"]', 'user@example.com');
     await page.fill('input[name="password"]', 'TestPass123!');
     await page.click('button[type="submit"]');

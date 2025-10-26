@@ -385,7 +385,7 @@ import fs from 'fs';
 test.describe('Video Upload and Playback Flow', () => {
   test('should upload and play video', async ({ page }) => {
     // 1. ログイン
-    await page.goto('/login');
+    await page.goto('/auth');
     await page.fill('input[name="email"]', 'test@example.com');
     await page.fill('input[name="password"]', 'TestPass123!');
     await page.click('button[type="submit"]');

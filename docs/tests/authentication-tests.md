@@ -556,7 +556,7 @@ import { test, expect } from '@playwright/test';
 test.describe('User Registration and Login Flow', () => {
   test('should complete full registration and login', async ({ page }) => {
     // 1. 登録ページにアクセス
-    await page.goto('/register');
+    await page.goto('/auth');
 
     // 2. フォーム入力
     await page.fill('input[name="email"]', 'e2e-test@example.com');
@@ -577,7 +577,7 @@ test.describe('User Registration and Login Flow', () => {
     await page.click('text=ログアウト');
 
     // 7. ログインページに戻る
-    await expect(page).toHaveURL('/login');
+    await expect(page).toHaveURL('/auth');
 
     // 8. 再度ログイン
     await page.fill('input[name="email"]', 'e2e-test@example.com');
@@ -601,7 +601,7 @@ test.describe('User Registration and Login Flow', () => {
 test.describe('Email Verification Flow', () => {
   test('should verify email address', async ({ page }) => {
     // 1. 登録
-    await page.goto('/register');
+    await page.goto('/auth');
     await page.fill('input[name="email"]', 'verify-test@example.com');
     await page.fill('input[name="password"]', 'SecurePass123!');
     await page.fill('input[name="name"]', 'Verify User');

@@ -21,8 +21,7 @@
 ```mermaid
 graph TB
     subgraph "Client Layer"
-        Web[Web App<br/>Next.js]
-        Mobile[Mobile App<br/>React Native]
+        ExpoApp[Cross-Platform App<br/>Expo Router<br/>iOS / Android / Web]
     end
 
     subgraph "CDN Layer"
@@ -71,8 +70,7 @@ graph TB
         SNS[AWS SNS<br/>通知]
     end
 
-    Web --> LB
-    Mobile --> LB
+    ExpoApp --> LB
     LB --> API1
     LB --> API2
     LB --> API3
@@ -97,8 +95,7 @@ graph TB
     MediaConvert --> S3_Processed
 
     S3_Processed --> CF
-    CF --> Web
-    CF --> Mobile
+    CF --> ExpoApp
 
     API1 --> Stripe
     API1 --> CCBill
@@ -123,7 +120,7 @@ graph TB
 │                         Client Layer                            │
 │  ┌──────────────┐                      ┌──────────────┐         │
 │  │  Web App     │                      │  Mobile App  │         │
-│  │  (Next.js)   │                      │  (React      │         │
+│  │  (Expo Router)   │                      │  (React      │         │
 │  │              │                      │   Native)    │         │
 │  └──────┬───────┘                      └──────┬───────┘         │
 └─────────┼────────────────────────────────────┼─────────────────┘
@@ -663,18 +660,15 @@ export class UploadVideoUseCase {
 
 ### 6.1 フロントエンド
 
-**Web App (Next.js 14+)**:
-- App Router使用
-- React 18 Server Components
-- TailwindCSS + shadcn/ui
-- Video.js for HLS再生
-- SWR for データフェッチ・キャッシュ
-
-**Mobile App (React Native + Expo)**:
-- Expo Router (ファイルベースルーティング)
-- React Native Video for HLS再生
-- React Query for データフェッチ
-- NativeWind (TailwindCSS for React Native)
+**Cross-Platform App (Expo Router)**:
+- **統合プラットフォーム**: iOS / Android / Web を単一コードベースで実現
+- **Expo Router**: ファイルベースルーティング（React Navigation v6ベース）
+- **React Native**: iOS/Android向けネイティブコンポーネント
+- **React Native Web**: Web向けレンダリング
+- **NativeWind**: TailwindCSS for React Native（全プラットフォーム共通スタイリング）
+- **Expo AV**: クロスプラットフォーム動画再生（HLS対応）
+- **React Query**: データフェッチ・キャッシュ・状態管理
+- **TypeScript 5.x**: 型安全な開発
 
 ### 6.2 バックエンド
 
