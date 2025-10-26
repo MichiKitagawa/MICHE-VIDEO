@@ -9,7 +9,9 @@
 - **可視性**: システム全体の健全性を可視化
 - **早期検知**: 障害の早期発見と通知
 - **分析**: パフォーマンス問題の根本原因分析
-- **SLA遵守**: 99.9%可用性の維持
+- **SLA遵守**:
+  - **MVP**: 99%可用性の維持
+  - **Stretch Goal 6**: 99.9%可用性の維持
 - **コンプライアンス**: 監査ログの記録と保持
 
 ---
@@ -130,43 +132,56 @@ logger.info('Payment succeeded', {
 });
 ```
 
-### 2.4 ログミドルウェア
+### 2.4 ログミドルウェア (Fastify)
 
 ```typescript
-import morgan from 'morgan';
+import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import logger from './logger';
 
-// カスタムmorganフォーマット
-morgan.token('user-id', (req) => req.user?.sub || 'anonymous');
-
-app.use(morgan(
-  ':method :url :status :res[content-length] - :response-time ms :user-id',
-  {
-    stream: {
-      write: (message) => logger.http(message.trim()),
-    },
-  }
-));
-
-// エラーログミドルウェア
-app.use((err, req, res, next) => {
-  logger.error('Unhandled error', {
-    event: 'error.unhandled',
-    error: {
-      message: err.message,
-      stack: err.stack,
-    },
-    method: req.method,
-    path: req.path,
-    user_id: req.user?.sub,
-    ip: req.ip,
+export function registerLogging(app: FastifyInstance) {
+  // リクエストログ (Fastify hooks)
+  app.addHook('onRequest', async (request, reply) => {
+    request.log.info({
+      event: 'request.start',
+      method: request.method,
+      url: request.url,
+      user_id: (request.user as any)?.sub || 'anonymous',
+      ip: request.ip,
+    });
   });
 
-  res.status(500).json({
-    error: 'internal_server_error',
-    message: 'サーバーエラーが発生しました',
+  app.addHook('onResponse', async (request, reply) => {
+    logger.http('HTTP Request', {
+      event: 'request.complete',
+      method: request.method,
+      url: request.url,
+      status: reply.statusCode,
+      responseTime: reply.getResponseTime(),
+      user_id: (request.user as any)?.sub || 'anonymous',
+      ip: request.ip,
+    });
   });
-});
+
+  // エラーハンドラー (Fastify error handler)
+  app.setErrorHandler(async (error, request, reply) => {
+    logger.error('Unhandled error', {
+      event: 'error.unhandled',
+      error: {
+        message: error.message,
+        stack: error.stack,
+      },
+      method: request.method,
+      path: request.url,
+      user_id: (request.user as any)?.sub,
+      ip: request.ip,
+    });
+
+    return reply.status(500).send({
+      error: 'internal_server_error',
+      message: 'サーバーエラーが発生しました',
+    });
+  });
+}
 ```
 
 ---

@@ -8,8 +8,8 @@ YouTube Studio風のクリエイターダッシュボードを提供し、チャ
 ### 1.2 対応フロントエンド画面
 - `/creation` - クリエイターダッシュボード
 - `/creation/video/[id]/edit` - 動画編集
-- `/creation/short/[id]/edit` - ショート編集
-- `/creation/live/create` - ライブ配信作成
+- `/creation/short/[id]/edit` - ショート編集 (Stretch Goal 1)
+- `/go-live` - ライブ配信作成 (Stretch Goal 2)
 - `/channel/[id]` - チャンネルページ（公開ページ）
 
 ### 1.3 関連機能

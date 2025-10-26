@@ -6,9 +6,16 @@
 
 ### 1.1 スケーラビリティ目標
 
-- **同時接続数**: 100万ユーザー
-- **APIレスポンスタイム**: P95 < 200ms
+**MVP Targets** (16-20 weeks):
+- **同時接続数**: 500-1,000ユーザー
+- **APIレスポンスタイム**: P95 < 500ms
 - **動画開始時間**: P95 < 2秒
+- **データベーススループット**: 100-500 QPS
+- **可用性**: 99% SLA
+
+**Stretch Goal 6 Targets** (Enterprise Grade - conditional):
+- **同時接続数**: 10,000-100,000ユーザー (最終目標: 100万)
+- **APIレスポンスタイム**: P95 < 200ms
 - **データベーススループット**: 10,000 QPS
 - **可用性**: 99.9% SLA
 
@@ -83,32 +90,35 @@ spec:
   sessionAffinity: None  # セッションアフィニティなし（Redisでセッション管理）
 ```
 
-**ヘルスチェック**:
+**ヘルスチェック (Fastify)**:
 ```typescript
 // healthcheck.ts
-import express from 'express';
+import { FastifyInstance } from 'fastify';
 
-const app = express();
+export function registerHealthChecks(app: FastifyInstance) {
+  // Liveness Probe: サーバーが生存しているか
+  app.get('/health', async (request, reply) => {
+    return reply.status(200).send({ status: 'ok' });
+  });
 
-// Liveness Probe: サーバーが生存しているか
-app.get('/health', (req, res) => {
-  res.status(200).json({ status: 'ok' });
-});
+  // Readiness Probe: トラフィック受信可能か
+  app.get('/ready', async (request, reply) => {
+    try {
+      // DB接続チェック
+      await db.query('SELECT 1');
 
-// Readiness Probe: トラフィック受信可能か
-app.get('/ready', async (req, res) => {
-  try {
-    // DB接続チェック
-    await db.query('SELECT 1');
+      // Redis接続チェック
+      await redis.ping();
 
-    // Redis接続チェック
-    await redis.ping();
-
-    res.status(200).json({ status: 'ready' });
-  } catch (error) {
-    res.status(503).json({ status: 'not_ready', error: error.message });
-  }
-});
+      return reply.status(200).send({ status: 'ready' });
+    } catch (error: any) {
+      return reply.status(503).send({
+        status: 'not_ready',
+        error: error.message
+      });
+    }
+  });
+}
 ```
 
 ---

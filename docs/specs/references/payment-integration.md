@@ -2,11 +2,15 @@
 
 ## Overview
 
-This document provides comprehensive technical details for integrating Stripe (general content) and CCBill (adult content) payment providers across the video platform. It covers checkout flows, webhook handling, subscription management, tips/SuperChat processing, and error handling.
+This document provides comprehensive technical details for integrating payment providers across the video platform. It covers checkout flows, webhook handling, subscription management, tips/SuperChat processing, and error handling.
 
-**Payment Providers**: 2
-- **Stripe**: General content (Premium plan, general tips/SuperChat)
-- **CCBill**: Adult content (Premium+ plan, adult tips/SuperChat)
+**Payment Providers**:
+- **Stripe**: General content (Premium plan, general tips/SuperChat) - **MVP**
+- **CCBill**: Adult content (Premium+ plan, adult tips/SuperChat) - **Stretch Goal 4 Only**
+
+**⚠️ Important**:
+- **MVP** includes **Stripe only**
+- **CCBill** is **Stretch Goal 4** - implement only after Decision Gate approval (requires adult content business strategy + legal compliance)
 
 **Integration Types**: Subscriptions, One-time payments (tips/SuperChat), Webhooks
 
@@ -278,52 +282,54 @@ function TipPaymentForm({ clientSecret, onSuccess }) {
 
 ### 2.4 Stripe Webhooks
 
-**Webhook Endpoint**:
+**Webhook Endpoint (Fastify)**:
 ```typescript
-import { NextApiRequest, NextApiResponse } from 'next';
+import { FastifyRequest, FastifyReply } from 'fastify';
 import Stripe from 'stripe';
-import { buffer } from 'micro';
-
-// Disable body parser for raw body access
-export const config = {
-  api: {
-    bodyParser: false,
-  },
-};
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' });
-  }
+// Fastify route handler with raw body parsing
+export async function stripeWebhookHandler(
+  request: FastifyRequest,
+  reply: FastifyReply
+) {
+  // Get raw body buffer (requires @fastify/raw-body plugin)
+  const rawBody = request.rawBody;
+  const sig = request.headers['stripe-signature'] as string;
 
-  const buf = await buffer(req);
-  const sig = req.headers['stripe-signature'] as string;
+  if (!sig || !rawBody) {
+    return reply.status(400).send({ error: 'Missing signature or body' });
+  }
 
   let event: Stripe.Event;
 
   try {
     // Verify webhook signature
     event = stripe.webhooks.constructEvent(
-      buf.toString(),
+      rawBody,
       sig,
       process.env.STRIPE_WEBHOOK_SECRET!
     );
-  } catch (err) {
+  } catch (err: any) {
     console.error('Webhook signature verification failed:', err.message);
-    return res.status(400).json({ error: 'Invalid signature' });
+    return reply.status(400).send({ error: 'Invalid signature' });
   }
 
   // Handle the event
   try {
     await handleStripeWebhook(event);
-    res.status(200).json({ received: true });
+    return reply.status(200).send({ received: true });
   } catch (err) {
     console.error('Webhook handler failed:', err);
-    res.status(500).json({ error: 'Webhook handler failed' });
+    return reply.status(500).send({ error: 'Webhook handler failed' });
   }
 }
+
+// Register route in Fastify app:
+// app.post('/webhooks/stripe', {
+//   config: { rawBody: true }  // Enable raw body parsing for this route
+// }, stripeWebhookHandler);
 ```
 
 **Event Handlers**:
@@ -673,32 +679,36 @@ function convertJPYtoUSD(amountJPY: number): string {
 }
 ```
 
-### 3.3 CCBill Webhooks (Postbacks)
+### 3.3 CCBill Webhooks (Postbacks) - **Stretch Goal 4 Only**
 
-**Webhook Endpoint**:
+**⚠️ Note**: CCBill integration is **Stretch Goal 4**, not included in MVP. Implement only after Decision Gate approval.
+
+**Webhook Endpoint (Fastify)**:
 ```typescript
-import { NextApiRequest, NextApiResponse } from 'next';
+import { FastifyRequest, FastifyReply } from 'fastify';
 import crypto from 'crypto';
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' });
-  }
+export async function ccbillWebhookHandler(
+  request: FastifyRequest,
+  reply: FastifyReply
+) {
+  const body = request.body as any;
+  const signature = request.headers['x-ccbill-signature'] as string;
 
   // Verify webhook signature
-  const isValid = verifyCCBillSignature(req.body, req.headers['x-ccbill-signature'] as string);
+  const isValid = verifyCCBillSignature(body, signature);
 
   if (!isValid) {
     console.error('CCBill webhook signature verification failed');
-    return res.status(400).json({ error: 'Invalid signature' });
+    return reply.status(400).send({ error: 'Invalid signature' });
   }
 
   try {
-    await handleCCBillWebhook(req.body);
-    res.status(200).send('OK');
+    await handleCCBillWebhook(body);
+    return reply.status(200).send('OK');
   } catch (err) {
     console.error('CCBill webhook handler failed:', err);
-    res.status(500).json({ error: 'Webhook handler failed' });
+    return reply.status(500).send({ error: 'Webhook handler failed' });
   }
 }
 
@@ -707,6 +717,9 @@ function verifyCCBillSignature(body: any, signature: string): boolean {
   const hash = crypto.createHash('md5').update(data).digest('hex');
   return hash === signature;
 }
+
+// Register route in Fastify app:
+// app.post('/webhooks/ccbill', ccbillWebhookHandler);
 ```
 
 **Event Handlers**:

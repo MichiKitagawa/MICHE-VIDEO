@@ -133,9 +133,12 @@
 - 監査ログ ETL: `audit_logs` (追加予定) を S3/Glue へエクスポート。
 
 ## 7. 非機能要件 & 運用
-- セキュリティ: JWT (HS256) + Redis ブラックリスト (`architecture/security.md`)、WAF, DDoS 対策、PII/カード情報暗号化。
-- パフォーマンス: API P95 < 200ms, 動画開始 < 2s (`system-overview.md` 1.1)。Fastify + connection pooling (pg) + Redis キャッシュ。
-- 可用性: マルチAZ, 自動フェイルオーバー, RPO < 5分 (Wal-G + PITR)。
+- セキュリティ: JWT (HS256, **`plat` claim required**) + Redis ブラックリスト (`architecture/security.md`)、WAF, DDoS 対策、PII/カード情報暗号化。
+- パフォーマンス:
+  - **MVP**: API P95 < 500ms, 動画開始 < 2s, 500-1,000同時接続, 99% SLA
+  - **Stretch Goal 6**: API P95 < 200ms, 10,000-100,000同時接続, 99.9% SLA
+- 可用性 (**MVP**): マルチAZ, 基本自動復旧, RPO < 15分
+- 可用性 (**Stretch Goal 6**): 自動フェイルオーバー, マルチリージョン, RPO < 5分 (Wal-G + PITR)
 - 監視: CloudWatch Metrics/Logs, ELK, Datadog (optional)。主要ダッシュボード: API latency, Error rate, MediaConvert job status, Payment failures。
 - アラート: 5xx スパイク, Webhook 失敗, 収益バッチ失敗, Stripe/CCBill ステータス異常。
 

@@ -196,25 +196,38 @@ CREATE TABLE subscription_plans (
   price INTEGER NOT NULL, -- 円単位
   billing_interval VARCHAR(20) NOT NULL, -- 'month', 'year'
   payment_provider VARCHAR(20) NOT NULL, -- 'stripe', 'ccbill', 'free'
+  stripe_price_id VARCHAR(100), -- Stripe Price ID (e.g., 'price_1234abcd')
+  ccbill_form_id VARCHAR(100), -- CCBill Form Digest ID (Stretch Goal 4)
   features JSONB NOT NULL,
   has_adult_access BOOLEAN DEFAULT FALSE,
   is_active BOOLEAN DEFAULT TRUE,
   sort_order INTEGER DEFAULT 0,
   created_at TIMESTAMP DEFAULT NOW(),
-  updated_at TIMESTAMP DEFAULT NOW()
+  updated_at TIMESTAMP DEFAULT NOW(),
+
+  -- Indexes for payment provider lookups
+  INDEX idx_subscription_plans_stripe_price (stripe_price_id),
+  INDEX idx_subscription_plans_ccbill_form (ccbill_form_id)
 );
 
 -- 初期データ
-INSERT INTO subscription_plans VALUES
+INSERT INTO subscription_plans (id, name, name_en, description, price, billing_interval, payment_provider, stripe_price_id, ccbill_form_id, features, has_adult_access, is_active, sort_order) VALUES
 ('plan_free', 'Free', 'Free', '無料プラン', 0, 'month', 'free',
+ NULL, NULL,
  '{"general_videos": true, "netflix_videos": false, "adult_videos": false, "live_streaming": false}',
  false, true, 1),
 ('plan_premium', 'Premium', 'Premium', 'プレミアムプラン', 980, 'month', 'stripe',
+ 'price_premium_monthly_jpy', NULL,
  '{"general_videos": true, "netflix_videos": true, "adult_videos": false, "live_streaming": true, "hd_quality": true, "ad_free": true}',
  false, true, 2),
-('plan_premium_plus', 'Premium+', 'Premium+', 'プレミアム+プラン', 1980, 'month', 'ccbill',
+('plan_premium_plus', 'Premium+', 'Premium+', 'プレミアム+プラン (Stretch Goal 4)', 1980, 'month', 'ccbill',
+ NULL, 'ccbill_form_premium_plus',
  '{"general_videos": true, "netflix_videos": true, "adult_videos": true, "live_streaming": true, "hd_quality": true, "ad_free": true, "priority_support": true}',
  true, true, 3);
+
+-- Note: Actual Stripe Price IDs and CCBill Form Digest IDs must be obtained from provider dashboards
+-- stripe_price_id example: 'price_1234567890abcdef' (from Stripe Dashboard)
+-- ccbill_form_id example: 'abc123def456' (from CCBill Admin Portal)
 ```
 
 **説明**: サブスクプランの定義（Free/Premium/Premium+）。

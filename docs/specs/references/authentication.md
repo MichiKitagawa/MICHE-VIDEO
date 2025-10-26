@@ -220,6 +220,7 @@ async function apiRequest(url, options) {
   "email": "user@example.com",
   "name": "User Name",
   "role": "user",
+  "plat": "general",
   "plan_id": "free",
   "has_adult_access": false,
   "iat": 1642435200,
@@ -232,6 +233,7 @@ async function apiRequest(url, options) {
 - `email`: User email address
 - `name`: User display name
 - `role`: User role (`user`, `creator`, `admin`)
+- **`plat`**: Platform claim - **REQUIRED** (`"general"` | `"adult"`) - Used for PostgreSQL RLS enforcement
 - `plan_id`: Current subscription plan (`free`, `premium`, `premium_plus`)
 - `has_adult_access`: Boolean, true if Premium+ and age verified
 - `iat`: Issued at timestamp (Unix epoch)
@@ -553,71 +555,113 @@ Response:
 - `creator`: Content creation access
 - `admin`: Full platform access
 
-**Middleware Implementation**:
-```javascript
-function requireAuth(req, res, next) {
-  const token = req.headers.authorization?.replace('Bearer ', '');
+**Middleware Implementation (Fastify)**:
+```typescript
+import { FastifyRequest, FastifyReply } from 'fastify';
+import jwt from 'jsonwebtoken';
+
+interface JWTPayload {
+  sub: string;
+  email: string;
+  name: string;
+  role: string;
+  plat: 'general' | 'adult';  // REQUIRED for RLS
+  plan_id: string;
+  has_adult_access: boolean;
+}
+
+declare module 'fastify' {
+  interface FastifyRequest {
+    user?: JWTPayload;
+  }
+}
+
+async function requireAuth(request: FastifyRequest, reply: FastifyReply) {
+  const token = request.headers.authorization?.replace('Bearer ', '');
 
   if (!token) {
-    return res.status(401).json({
+    return reply.status(401).send({
       error: 'auth_required',
       message: '認証が必要です'
     });
   }
 
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = decoded;
-    next();
-  } catch (error) {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET!) as JWTPayload;
+
+    // Validate plat claim (REQUIRED)
+    if (!decoded.plat || !['general', 'adult'].includes(decoded.plat)) {
+      return reply.status(401).send({
+        error: 'invalid_token',
+        message: 'Platform claim is missing or invalid'
+      });
+    }
+
+    request.user = decoded;
+  } catch (error: any) {
     if (error.name === 'TokenExpiredError') {
-      return res.status(401).json({
+      return reply.status(401).send({
         error: 'token_expired',
         message: 'トークンの有効期限が切れました'
       });
     }
-    return res.status(401).json({
+    return reply.status(401).send({
       error: 'invalid_token',
       message: 'トークンが無効です'
     });
   }
 }
 
-function requireRole(role) {
-  return (req, res, next) => {
-    if (req.user.role !== role && req.user.role !== 'admin') {
-      return res.status(403).json({
+function requireRole(role: string) {
+  return async (request: FastifyRequest, reply: FastifyReply) => {
+    if (!request.user) {
+      return reply.status(401).send({ error: 'auth_required' });
+    }
+
+    if (request.user.role !== role && request.user.role !== 'admin') {
+      return reply.status(403).send({
         error: 'insufficient_permissions',
         message: 'この操作を実行する権限がありません',
         details: {
           required_role: role,
-          current_role: req.user.role
+          current_role: request.user.role
         }
       });
     }
-    next();
   };
 }
 
-function requirePlan(plan) {
-  return (req, res, next) => {
-    const planHierarchy = { free: 0, premium: 1, premium_plus: 2 };
+function requirePlan(plan: string) {
+  return async (request: FastifyRequest, reply: FastifyReply) => {
+    if (!request.user) {
+      return reply.status(401).send({ error: 'auth_required' });
+    }
+
+    const planHierarchy: Record<string, number> = {
+      free: 0,
+      premium: 1,
+      premium_plus: 2
+    };
     const requiredLevel = planHierarchy[plan];
-    const userLevel = planHierarchy[req.user.plan_id];
+    const userLevel = planHierarchy[request.user.plan_id];
 
     if (userLevel < requiredLevel) {
-      return res.status(402).json({
+      return reply.status(402).send({
         error: 'subscription_required',
         message: 'このコンテンツを視聴するにはサブスクリプションが必要です',
         details: {
           required_plan: plan,
-          current_plan: req.user.plan_id
+          current_plan: request.user.plan_id
         }
       });
     }
-    next();
   };
 }
+
+// Usage in Fastify:
+// app.get('/api/protected', {
+//   preHandler: [requireAuth, requirePlan('premium')]
+// }, handler);
 ```
 
 **Usage**:

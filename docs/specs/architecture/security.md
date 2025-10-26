@@ -71,12 +71,18 @@
   "email": "user@example.com",
   "name": "田中太郎",
   "role": "user",
+  "plat": "general",
   "plan_id": "plan_premium",
   "has_adult_access": false,
   "iat": 1730000000,
   "exp": 1730086400
 }
 ```
+
+**Platform Claim (`plat`)**:
+- `"general"`: General content platform (default)
+- `"adult"`: Adult content platform (Premium+ plan only)
+- **Required for RLS enforcement**: This claim is used in PostgreSQL Row Level Security policies to isolate adult content
 
 **Signature**:
 ```
@@ -86,25 +92,37 @@ HMACSHA256(
 )
 ```
 
-### 2.3 認証ミドルウェア実装
+### 2.3 認証ミドルウェア実装（Fastify）
 
 ```typescript
-import { Request, Response, NextFunction } from 'express';
+import { FastifyRequest, FastifyReply } from 'fastify';
 import jwt from 'jsonwebtoken';
 
 interface JWTPayload {
   sub: string;
   email: string;
   role: string;
+  plat: 'general' | 'adult';  // Platform claim - REQUIRED for RLS
   plan_id: string;
   has_adult_access: boolean;
 }
 
-export function requireAuth(req: Request, res: Response, next: NextFunction) {
-  const token = req.headers.authorization?.replace('Bearer ', '');
+// Extend Fastify request type
+declare module 'fastify' {
+  interface FastifyRequest {
+    user?: JWTPayload;
+  }
+}
+
+// Fastify auth hook
+export async function requireAuth(
+  request: FastifyRequest,
+  reply: FastifyReply
+) {
+  const token = request.headers.authorization?.replace('Bearer ', '');
 
   if (!token) {
-    return res.status(401).json({
+    return reply.status(401).send({
       error: 'auth_required',
       message: '認証が必要です',
     });
@@ -113,62 +131,89 @@ export function requireAuth(req: Request, res: Response, next: NextFunction) {
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET!) as JWTPayload;
 
-    // JWTペイロードをリクエストに追加
-    req.user = decoded;
-    next();
-  } catch (error) {
+    // Verify plat claim exists (required for RLS)
+    if (!decoded.plat || !['general', 'adult'].includes(decoded.plat)) {
+      return reply.status(401).send({
+        error: 'invalid_token',
+        message: 'Platform claim is missing or invalid',
+      });
+    }
+
+    // Add JWT payload to request
+    request.user = decoded;
+  } catch (error: any) {
     if (error.name === 'TokenExpiredError') {
-      return res.status(401).json({
+      return reply.status(401).send({
         error: 'token_expired',
         message: 'トークンの有効期限が切れました',
       });
     }
 
-    return res.status(401).json({
+    return reply.status(401).send({
       error: 'invalid_token',
       message: 'トークンが無効です',
     });
   }
 }
 
-// ロールベースアクセス制御
+// Register as preHandler hook in Fastify:
+// app.addHook('preHandler', requireAuth);
+// Or use on specific routes:
+// app.get('/api/protected', { preHandler: requireAuth }, handler);
+
+// ロールベースアクセス制御 (Fastify)
 export function requireRole(role: string) {
-  return (req: Request, res: Response, next: NextFunction) => {
-    if (req.user.role !== role && req.user.role !== 'admin') {
-      return res.status(403).json({
+  return async (request: FastifyRequest, reply: FastifyReply) => {
+    if (!request.user) {
+      return reply.status(401).send({ error: 'auth_required' });
+    }
+
+    if (request.user.role !== role && request.user.role !== 'admin') {
+      return reply.status(403).send({
         error: 'insufficient_permissions',
         message: 'この操作を実行する権限がありません',
         details: {
           required_role: role,
-          current_role: req.user.role,
+          current_role: request.user.role,
         },
       });
     }
-    next();
   };
 }
 
-// サブスクプランチェック
+// サブスクプランチェック (Fastify)
 export function requirePlan(minPlan: string) {
-  const planHierarchy = { free: 0, premium: 1, premium_plus: 2 };
+  const planHierarchy: Record<string, number> = {
+    free: 0,
+    premium: 1,
+    premium_plus: 2
+  };
 
-  return (req: Request, res: Response, next: NextFunction) => {
-    const userPlanLevel = planHierarchy[req.user.plan_id];
+  return async (request: FastifyRequest, reply: FastifyReply) => {
+    if (!request.user) {
+      return reply.status(401).send({ error: 'auth_required' });
+    }
+
+    const userPlanLevel = planHierarchy[request.user.plan_id];
     const requiredLevel = planHierarchy[minPlan];
 
     if (userPlanLevel < requiredLevel) {
-      return res.status(402).json({
+      return reply.status(402).send({
         error: 'subscription_required',
         message: 'このコンテンツを視聴するにはサブスクリプションが必要です',
         details: {
           required_plan: minPlan,
-          current_plan: req.user.plan_id,
+          current_plan: request.user.plan_id,
         },
       });
     }
-    next();
   };
 }
+
+// Usage example:
+// app.get('/api/premium-content', {
+//   preHandler: [requireAuth, requirePlan('premium')]
+// }, handler);
 ```
 
 ### 2.4 リフレッシュトークンローテーション
