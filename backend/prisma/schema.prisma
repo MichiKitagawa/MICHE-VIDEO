@@ -1,0 +1,191 @@
+// Video Platform Database Schema
+// Based on: docs/specs/references/data-models.md
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// =====================================
+// 1. Authentication & User Management
+// =====================================
+
+model User {
+  id                String    @id @default(uuid()) @db.Uuid
+  email             String    @unique @db.VarChar(255)
+  passwordHash      String    @map("password_hash") @db.VarChar(255)
+  name              String    @db.VarChar(100)
+  displayName       String?   @map("display_name") @db.VarChar(100)
+  bio               String?   @db.Text
+  avatarUrl         String?   @map("avatar_url") @db.VarChar(500)
+  isEmailVerified   Boolean   @default(false) @map("is_email_verified")
+  isCreator         Boolean   @default(false) @map("is_creator")
+  createdAt         DateTime  @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt         DateTime  @updatedAt @map("updated_at") @db.Timestamptz
+  lastLoginAt       DateTime? @map("last_login_at") @db.Timestamptz
+
+  // Relations
+  sessions            UserSession[]
+  emailVerifications  EmailVerification[]
+  passwordResets      PasswordReset[]
+  subscriptions       UserSubscription[]
+  paymentMethods      PaymentMethod[]
+
+  @@index([email])
+  @@index([createdAt])
+  @@map("users")
+}
+
+model UserSession {
+  id                String   @id @default(uuid()) @db.Uuid
+  userId            String   @map("user_id") @db.Uuid
+  refreshTokenHash  String   @map("refresh_token_hash") @db.VarChar(255)
+  deviceInfo        Json?    @map("device_info") @db.JsonB
+  expiresAt         DateTime @map("expires_at") @db.Timestamptz
+  createdAt         DateTime @default(now()) @map("created_at") @db.Timestamptz
+  lastAccessedAt    DateTime @default(now()) @map("last_accessed_at") @db.Timestamptz
+  isRevoked         Boolean  @default(false) @map("is_revoked")
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+  @@index([refreshTokenHash])
+  @@map("user_sessions")
+}
+
+model EmailVerification {
+  id               String    @id @default(uuid()) @db.Uuid
+  userId           String    @map("user_id") @db.Uuid
+  verificationCode String    @map("verification_code") @db.VarChar(64)
+  expiresAt        DateTime  @map("expires_at") @db.Timestamptz
+  verifiedAt       DateTime? @map("verified_at") @db.Timestamptz
+  createdAt        DateTime  @default(now()) @map("created_at") @db.Timestamptz
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([verificationCode])
+  @@map("email_verifications")
+}
+
+model PasswordReset {
+  id              String    @id @default(uuid()) @db.Uuid
+  userId          String    @map("user_id") @db.Uuid
+  resetTokenHash  String    @map("reset_token_hash") @db.VarChar(255)
+  expiresAt       DateTime  @map("expires_at") @db.Timestamptz
+  usedAt          DateTime? @map("used_at") @db.Timestamptz
+  createdAt       DateTime  @default(now()) @map("created_at") @db.Timestamptz
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([resetTokenHash])
+  @@map("password_resets")
+}
+
+// =====================================
+// 2. Subscription & Payment
+// =====================================
+
+model SubscriptionPlan {
+  id              String   @id @db.VarChar(50)
+  name            String   @db.VarChar(100)
+  nameEn          String   @map("name_en") @db.VarChar(100)
+  description     String?  @db.Text
+  price           Int      // 円単位
+  billingInterval String   @map("billing_interval") @db.VarChar(20) // 'month', 'year'
+  paymentProvider String   @map("payment_provider") @db.VarChar(20) // 'stripe', 'ccbill', 'free'
+  stripePriceId   String?  @map("stripe_price_id") @db.VarChar(100)
+  ccbillFormId    String?  @map("ccbill_form_id") @db.VarChar(100)
+  features        Json     @db.JsonB
+  hasAdultAccess  Boolean  @default(false) @map("has_adult_access")
+  isActive        Boolean  @default(true) @map("is_active")
+  sortOrder       Int      @default(0) @map("sort_order")
+  createdAt       DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt       DateTime @updatedAt @map("updated_at") @db.Timestamptz
+
+  // Relations
+  userSubscriptions UserSubscription[]
+
+  @@index([stripePriceId])
+  @@index([ccbillFormId])
+  @@map("subscription_plans")
+}
+
+model UserSubscription {
+  id                     String    @id @default(uuid()) @db.Uuid
+  userId                 String    @map("user_id") @db.Uuid
+  planId                 String    @map("plan_id") @db.VarChar(50)
+  paymentProvider        String    @map("payment_provider") @db.VarChar(20) // 'stripe', 'ccbill', 'free'
+  externalSubscriptionId String?   @map("external_subscription_id") @db.VarChar(255)
+  externalCustomerId     String?   @map("external_customer_id") @db.VarChar(255)
+  status                 String    @db.VarChar(20) // 'active', 'canceled', 'past_due', 'unpaid'
+  currentPeriodStart     DateTime  @map("current_period_start") @db.Timestamptz
+  currentPeriodEnd       DateTime  @map("current_period_end") @db.Timestamptz
+  cancelAtPeriodEnd      Boolean   @default(false) @map("cancel_at_period_end")
+  canceledAt             DateTime? @map("canceled_at") @db.Timestamptz
+  createdAt              DateTime  @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt              DateTime  @updatedAt @map("updated_at") @db.Timestamptz
+
+  // Relations
+  user         User                         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  plan         SubscriptionPlan             @relation(fields: [planId], references: [id])
+  paymentHistory SubscriptionPaymentHistory[]
+
+  @@unique([userId, planId, status])
+  @@index([userId])
+  @@index([status])
+  @@index([externalSubscriptionId])
+  @@map("user_subscriptions")
+}
+
+model SubscriptionPaymentHistory {
+  id                   String    @id @default(uuid()) @db.Uuid
+  userSubscriptionId   String    @map("user_subscription_id") @db.Uuid
+  paymentProvider      String    @map("payment_provider") @db.VarChar(20)
+  externalPaymentId    String?   @map("external_payment_id") @db.VarChar(255)
+  amount               Int       // 円単位
+  currency             String    @default("JPY") @db.VarChar(3)
+  status               String    @db.VarChar(20) // 'succeeded', 'failed', 'pending', 'refunded'
+  paymentMethodType    String?   @map("payment_method_type") @db.VarChar(50)
+  failureReason        String?   @map("failure_reason") @db.Text
+  paidAt               DateTime? @map("paid_at") @db.Timestamptz
+  createdAt            DateTime  @default(now()) @map("created_at") @db.Timestamptz
+
+  // Relations
+  userSubscription UserSubscription @relation(fields: [userSubscriptionId], references: [id], onDelete: Cascade)
+
+  @@index([userSubscriptionId])
+  @@index([status])
+  @@index([externalPaymentId])
+  @@map("subscription_payment_history")
+}
+
+model PaymentMethod {
+  id                      String   @id @default(uuid()) @db.Uuid
+  userId                  String   @map("user_id") @db.Uuid
+  paymentProvider         String   @map("payment_provider") @db.VarChar(20)
+  externalPaymentMethodId String   @map("external_payment_method_id") @db.VarChar(255)
+  type                    String   @db.VarChar(50) // 'card', 'paypal', 'bank_transfer'
+  cardBrand               String?  @map("card_brand") @db.VarChar(20) // 'visa', 'mastercard', 'amex', 'jcb'
+  cardLast4               String?  @map("card_last4") @db.VarChar(4)
+  cardExpMonth            Int?     @map("card_exp_month")
+  cardExpYear             Int?     @map("card_exp_year")
+  isDefault               Boolean  @default(false) @map("is_default")
+  createdAt               DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([externalPaymentMethodId])
+  @@map("payment_methods")
+}

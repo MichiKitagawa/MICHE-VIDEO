@@ -305,29 +305,33 @@ export async function refreshAccessToken(refreshToken: string) {
 
 ```typescript
 // 自分のコンテンツのみ編集可能
-export async function requireOwnership(req: Request, res: Response, next: NextFunction) {
-  const contentId = req.params.id;
-  const userId = req.user.sub;
+export async function requireOwnership(request: FastifyRequest, reply: FastifyReply) {
+  const contentId = request.params.id;
+  const userId = request.user.sub;
 
   const content = await db.query('SELECT user_id FROM videos WHERE id = $1', [contentId]);
 
   if (!content) {
-    return res.status(404).json({ error: 'not_found', message: 'コンテンツが見つかりません' });
+    return reply.code(404).send({
+      error: 'not_found',
+      message: 'コンテンツが見つかりません'
+    });
   }
 
-  if (content.user_id !== userId && req.user.role !== 'admin') {
-    return res.status(403).json({
+  if (content.user_id !== userId && request.user.role !== 'admin') {
+    return reply.code(403).send({
       error: 'content_not_owned',
       message: 'このコンテンツを編集する権限がありません',
     });
   }
 
-  req.content = content;
-  next();
+  request.content = content;
 }
 
 // 使用例
-app.patch('/api/videos/:id', requireAuth, requireOwnership, updateVideo);
+fastify.patch('/api/videos/:id', {
+  onRequest: [requireAuth, requireOwnership]
+}, updateVideo);
 ```
 
 ---
@@ -606,23 +610,27 @@ async function rateLimiter(key: string, limit: number, window: number) {
   return current;
 }
 
-// ミドルウェア
+// Fastify hook
 function rateLimit(limit: number, window: number) {
-  return async (req: Request, res: Response, next: NextFunction) => {
-    const key = `rate_limit:${req.ip}:${req.path}`;
+  return async (request: FastifyRequest, reply: FastifyReply) => {
+    const key = `rate_limit:${request.ip}:${request.routerPath}`;
 
     try {
       await rateLimiter(key, limit, window);
-      next();
     } catch (error) {
-      res.status(error.status).json(error);
+      return reply.code(error.status).send(error);
     }
   };
 }
 
 // 使用例
-app.post('/api/auth/login', rateLimit(5, 900), login); // 5回/15分
-app.post('/api/videos/create', requireAuth, rateLimit(10, 60), createVideo); // 10回/分
+fastify.post('/api/auth/login', {
+  onRequest: rateLimit(5, 900)
+}, login); // 5回/15分
+
+fastify.post('/api/videos/create', {
+  onRequest: [requireAuth, rateLimit(10, 60)]
+}, createVideo); // 10回/分
 ```
 
 ### 5.5 セキュリティヘッダー（Helmet.js）
@@ -706,22 +714,23 @@ app.post('/api/subscriptions/create-ccbill-checkout', requireAuth, async (req, r
 ### 6.2 アダルトコンテンツアクセス制御
 
 ```typescript
-function requireAdultAccess(req: Request, res: Response, next: NextFunction) {
-  if (!req.user.has_adult_access) {
-    return res.status(403).json({
+function requireAdultAccess(request: FastifyRequest, reply: FastifyReply) {
+  if (!request.user.has_adult_access) {
+    return reply.code(403).send({
       error: 'premium_plus_required',
       message: 'このコンテンツを視聴するにはPremium+プランが必要です',
     });
   }
-  next();
 }
 
 // 使用例
-app.get('/api/videos/:id', requireAuth, async (req, res) => {
-  const video = await db.query('SELECT * FROM videos WHERE id = $1', [req.params.id]);
+fastify.get('/api/videos/:id', {
+  onRequest: requireAuth
+}, async (request, reply) => {
+  const video = await db.query('SELECT * FROM videos WHERE id = $1', [request.params.id]);
 
-  if (video.is_adult && !req.user.has_adult_access) {
-    return res.status(403).json({
+  if (video.is_adult && !request.user.has_adult_access) {
+    return reply.code(403).send({
       error: 'premium_plus_required',
       message: 'このコンテンツを視聴するにはPremium+プランが必要です',
     });

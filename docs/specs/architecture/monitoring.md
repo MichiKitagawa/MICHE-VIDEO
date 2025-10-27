@@ -705,9 +705,9 @@ app.get('/ready', async (req, res) => {
 **New Relic統合**（オプション）:
 ```typescript
 require('newrelic');
-import express from 'express';
+import Fastify from 'fastify';
 
-const app = express();
+const fastify = Fastify({ logger: true });
 
 // New Relicが自動的に計測
 // - トランザクション時間

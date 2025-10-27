@@ -35,7 +35,7 @@ This document provides a comprehensive list of ALL API endpoints across the vide
 
 ### Subscription Operations
 - `POST /api/subscriptions/create-checkout` - Create Stripe checkout session (auth required)
-- `POST /api/subscriptions/create-ccbill-checkout` - Create CCBill checkout (auth required)
+- `POST /api/subscriptions/create-ccbill-checkout` - Create CCBill checkout (auth required) ⚠️ **Stretch Goal 4 Only**
 - `POST /api/payment/{provider}/checkout` - Create checkout session (alias, frontend pattern) (auth required)
 - `POST /api/subscriptions/change` - Change subscription plan (auth required)
 - `POST /api/subscriptions/cancel` - Cancel subscription (auth required)
@@ -459,7 +459,7 @@ Authorization: Bearer <access_token>
 
 **Note**: This endpoint is an alias for:
 - `/api/subscriptions/create-checkout` (Stripe)
-- `/api/subscriptions/create-ccbill-checkout` (CCBill)
+- `/api/subscriptions/create-ccbill-checkout` (CCBill) ⚠️ **Stretch Goal 4 Only**
 
 **Examples**:
 
@@ -474,7 +474,7 @@ curl -X POST https://api.example.com/api/payment/stripe/checkout \
     "cancel_url": "https://example.com/cancel"
   }'
 
-# CCBill checkout
+# CCBill checkout (⚠️ Stretch Goal 4 Only)
 curl -X POST https://api.example.com/api/payment/ccbill/checkout \
   -H "Authorization: Bearer eyJhbGc..." \
   -H "Content-Type: application/json" \
