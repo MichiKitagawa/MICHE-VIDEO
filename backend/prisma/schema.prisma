@@ -54,6 +54,8 @@ model User {
 
   @@index([email])
   @@index([createdAt])
+  @@index([isCreator])
+  @@index([isCreator, lastLoginAt])
   @@map("users")
 }
 
@@ -73,6 +75,9 @@ model UserSession {
   @@index([userId])
   @@index([expiresAt])
   @@index([refreshTokenHash])
+  @@index([isRevoked])
+  @@index([refreshTokenHash, isRevoked, expiresAt])
+  @@index([userId, isRevoked, expiresAt])
   @@map("user_sessions")
 }
 
@@ -89,6 +94,8 @@ model EmailVerification {
 
   @@index([userId])
   @@index([verificationCode])
+  @@index([expiresAt])
+  @@index([verifiedAt])
   @@map("email_verifications")
 }
 
@@ -105,6 +112,8 @@ model PasswordReset {
 
   @@index([userId])
   @@index([resetTokenHash])
+  @@index([expiresAt])
+  @@index([usedAt])
   @@map("password_resets")
 }
 
@@ -134,6 +143,8 @@ model SubscriptionPlan {
 
   @@index([stripePriceId])
   @@index([ccbillFormId])
+  @@index([isActive])
+  @@index([paymentProvider, isActive])
   @@map("subscription_plans")
 }
 
@@ -161,6 +172,8 @@ model UserSubscription {
   @@index([userId])
   @@index([status])
   @@index([externalSubscriptionId])
+  @@index([userId, status, currentPeriodEnd])
+  @@index([canceledAt])
   @@map("user_subscriptions")
 }
 
@@ -183,6 +196,8 @@ model SubscriptionPaymentHistory {
   @@index([userSubscriptionId])
   @@index([status])
   @@index([externalPaymentId])
+  @@index([createdAt(sort: Desc)])
+  @@index([paidAt(sort: Desc)])
   @@map("subscription_payment_history")
 }
 
@@ -204,6 +219,7 @@ model PaymentMethod {
 
   @@index([userId])
   @@index([externalPaymentMethodId])
+  @@index([userId, isDefault])
   @@map("payment_methods")
 }
 
@@ -264,6 +280,12 @@ model Video {
   @@index([isAdult])
   @@index([publishedAt])
   @@index([createdAt])
+  @@index([viewCount(sort: Desc)])
+  @@index([likeCount(sort: Desc)])
+  @@index([userId, status])
+  @@index([categoryId, publishedAt(sort: Desc)])
+  @@index([privacy, status, publishedAt(sort: Desc)])
+  @@index([isAdult, privacy, status, publishedAt(sort: Desc)])
   @@map("videos")
 }
 
@@ -318,6 +340,8 @@ model VideoComment {
   @@index([userId])
   @@index([parentId])
   @@index([createdAt])
+  @@index([deletedAt])
+  @@index([videoId, parentId, createdAt(sort: Desc)])
   @@map("video_comments")
 }
 
@@ -337,6 +361,7 @@ model VideoView {
   @@index([videoId])
   @@index([userId])
   @@index([createdAt])
+  @@index([videoId, createdAt(sort: Desc)])
   @@map("video_views")
 }
 
@@ -359,6 +384,8 @@ model WatchHistory {
   @@index([userId])
   @@index([videoId])
   @@index([lastWatchedAt])
+  @@index([completed])
+  @@index([userId, lastWatchedAt(sort: Desc)])
   @@map("watch_history")
 }
 
@@ -387,6 +414,8 @@ model Tip {
   @@index([toUserId])
   @@index([contentType, contentId])
   @@index([createdAt(sort: Desc)])
+  @@index([status])
+  @@index([toUserId, status, createdAt(sort: Desc)])
   @@map("tips")
 }
 
@@ -411,6 +440,8 @@ model Earning {
   @@index([sourceType])
   @@index([status])
   @@index([availableAt])
+  @@index([createdAt(sort: Desc)])
+  @@index([userId, status, availableAt])
   @@map("earnings")
 }
 
@@ -442,6 +473,8 @@ model WithdrawalMethod {
   withdrawalRequests WithdrawalRequest[]
 
   @@index([userId])
+  @@index([isVerified])
+  @@index([userId, isDefault])
   @@map("withdrawal_methods")
 }
 
@@ -464,6 +497,7 @@ model WithdrawalRequest {
   @@index([userId])
   @@index([status])
   @@index([requestedAt(sort: Desc)])
+  @@index([processedAt])
   @@map("withdrawal_requests")
 }
 
@@ -509,6 +543,8 @@ model Playlist {
   @@index([userId])
   @@index([isPublic])
   @@index([createdAt(sort: Desc)])
+  @@index([userId, isPublic])
+  @@index([videoCount(sort: Desc)])
   @@map("playlists")
 }
 
@@ -572,6 +608,9 @@ model Notification {
   @@index([type])
   @@index([isRead])
   @@index([createdAt(sort: Desc)])
+  @@index([actorId])
+  @@index([userId, isRead])
+  @@index([userId, isRead, createdAt(sort: Desc)])
   @@map("notifications")
 }
 
@@ -591,6 +630,8 @@ model UserStats {
 
   @@index([userId])
   @@index([followerCount(sort: Desc)])
+  @@index([totalViews(sort: Desc)])
+  @@index([totalVideos(sort: Desc)])
   @@map("user_stats")
 }
 
@@ -619,6 +660,10 @@ model Channel {
 
   @@index([userId])
   @@index([subscriberCount(sort: Desc)])
+  @@index([isVerified])
+  @@index([totalViews(sort: Desc)])
+  @@index([totalVideos(sort: Desc)])
+  @@index([isVerified, subscriberCount(sort: Desc)])
   @@map("channels")
 }
 
