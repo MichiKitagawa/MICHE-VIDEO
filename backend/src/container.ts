@@ -45,15 +45,25 @@ import { SubscriptionPlanRepository } from '@/modules/subscription/infrastructur
 import { UserSubscriptionRepository } from '@/modules/subscription/infrastructure/user-subscription-repository';
 import { SubscriptionPaymentHistoryRepository } from '@/modules/subscription/infrastructure/payment-history-repository';
 
+// Repositories - Monetization
+import {
+  ITipRepository,
+  IEarningRepository,
+} from '@/modules/monetization/infrastructure/interfaces';
+import { TipRepository } from '@/modules/monetization/infrastructure/tip-repository';
+import { EarningRepository } from '@/modules/monetization/infrastructure/earning-repository';
+
 // Services
 import { AuthService } from '@/application/services/auth-service';
 import { VideoService } from '@/application/services/video-service';
 import { SubscriptionService } from '@/application/services/subscription-service';
+import { MonetizationService } from '@/application/services/monetization-service';
 
 // Controllers
 import { AuthController } from '@/interface/http/controllers/auth-controller';
 import { VideoController } from '@/interface/http/controllers/video-controller';
 import { SubscriptionController } from '@/interface/http/controllers/subscription-controller';
+import { MonetizationController } from '@/interface/http/controllers/monetization-controller';
 
 /**
  * Create and configure the DI container.
@@ -82,15 +92,21 @@ export function createContainer(): Container {
   container.bind<IUserSubscriptionRepository>(TYPES.UserSubscriptionRepository).to(UserSubscriptionRepository);
   container.bind<ISubscriptionPaymentHistoryRepository>(TYPES.SubscriptionPaymentHistoryRepository).to(SubscriptionPaymentHistoryRepository);
 
+  // Bind Repositories - Monetization
+  container.bind<ITipRepository>(TYPES.TipRepository).to(TipRepository);
+  container.bind<IEarningRepository>(TYPES.EarningRepository).to(EarningRepository);
+
   // Bind Services
   container.bind<AuthService>(TYPES.AuthService).to(AuthService);
   container.bind<VideoService>(TYPES.VideoService).to(VideoService);
   container.bind<SubscriptionService>(TYPES.SubscriptionService).to(SubscriptionService);
+  container.bind<MonetizationService>(TYPES.MonetizationService).to(MonetizationService);
 
   // Bind Controllers
   container.bind<AuthController>(TYPES.AuthController).to(AuthController);
   container.bind<VideoController>(TYPES.VideoController).to(VideoController);
   container.bind<SubscriptionController>(TYPES.SubscriptionController).to(SubscriptionController);
+  container.bind<MonetizationController>(TYPES.MonetizationController).to(MonetizationController);
 
   return container;
 }

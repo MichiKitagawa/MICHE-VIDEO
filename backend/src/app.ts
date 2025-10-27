@@ -15,6 +15,7 @@ import { VideoController } from '@/interface/http/controllers/video-controller';
 import { registerAuthRoutes } from '@/interface/http/routes/auth-routes';
 import { registerVideoRoutes } from '@/interface/http/routes/video-routes';
 import { subscriptionRoutes } from '@/interface/http/routes/subscription-routes';
+import { monetizationRoutes } from '@/interface/http/routes/monetization-routes';
 
 export async function createApp(container: Container): Promise<FastifyInstance> {
   const fastify = Fastify({
@@ -56,6 +57,7 @@ export async function createApp(container: Container): Promise<FastifyInstance> 
   await registerVideoRoutes(fastify, videoController);
 
   await subscriptionRoutes(fastify, container);
+  await monetizationRoutes(fastify, container);
 
   return fastify;
 }

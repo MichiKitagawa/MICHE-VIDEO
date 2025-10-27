@@ -39,6 +39,12 @@ model User {
   videoComments       VideoComment[]
   videoViews          VideoView[]
   watchHistory        WatchHistory[]
+  sentTips            Tip[]                @relation("SentTips")
+  receivedTips        Tip[]                @relation("ReceivedTips")
+  earnings            Earning[]
+  withdrawalMethods   WithdrawalMethod[]
+  withdrawalRequests  WithdrawalRequest[]
+  taxInfo             TaxInfo?
 
   @@index([email])
   @@index([createdAt])
@@ -347,4 +353,129 @@ model WatchHistory {
   @@index([videoId])
   @@index([lastWatchedAt])
   @@map("watch_history")
+}
+
+// ==================
+// Monetization Models
+// ==================
+
+model Tip {
+  id              String   @id @default(uuid()) @db.Uuid
+  fromUserId      String   @map("from_user_id") @db.Uuid
+  toUserId        String   @map("to_user_id") @db.Uuid
+  contentType     String   @map("content_type") @db.VarChar(20) // 'video', 'short', 'live'
+  contentId       String   @map("content_id") @db.Uuid
+  amount          Int      // Amount in JPY
+  message         String?  @db.Text
+  paymentProvider String   @map("payment_provider") @db.VarChar(20) // 'stripe', 'ccbill'
+  transactionId   String?  @map("transaction_id") @db.VarChar(255)
+  status          String   @db.VarChar(20) // 'pending', 'completed', 'failed', 'refunded'
+  createdAt       DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  // Relations
+  fromUser User @relation("SentTips", fields: [fromUserId], references: [id], onDelete: Cascade)
+  toUser   User @relation("ReceivedTips", fields: [toUserId], references: [id], onDelete: Cascade)
+
+  @@index([fromUserId])
+  @@index([toUserId])
+  @@index([contentType, contentId])
+  @@index([createdAt(sort: Desc)])
+  @@map("tips")
+}
+
+model Earning {
+  id              String    @id @default(uuid()) @db.Uuid
+  userId          String    @map("user_id") @db.Uuid
+  sourceType      String    @map("source_type") @db.VarChar(20) // 'tip', 'superchat', 'subscription_pool'
+  sourceId        String?   @map("source_id") @db.VarChar(100)
+  amount          Int       // Amount in JPY
+  platformFee     Int       @map("platform_fee") // Platform fee (30%)
+  netAmount       Int       @map("net_amount") // After fee deduction
+  paymentProvider String?   @map("payment_provider") @db.VarChar(20) // 'stripe', 'ccbill'
+  transactionId   String?   @map("transaction_id") @db.VarChar(255)
+  status          String    @db.VarChar(20) // 'pending', 'available', 'withdrawn'
+  availableAt     DateTime? @map("available_at") @db.Timestamptz // Available after 14 days
+  createdAt       DateTime  @default(now()) @map("created_at") @db.Timestamptz
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([sourceType])
+  @@index([status])
+  @@index([availableAt])
+  @@map("earnings")
+}
+
+model WithdrawalMethod {
+  id            String   @id @default(uuid()) @db.Uuid
+  userId        String   @map("user_id") @db.Uuid
+  type          String   @db.VarChar(50) // 'bank_transfer', 'paypal', 'other'
+
+  // Bank transfer
+  bankName      String?  @map("bank_name") @db.VarChar(100)
+  branchName    String?  @map("branch_name") @db.VarChar(100)
+  accountType   String?  @map("account_type") @db.VarChar(20) // 'checking', 'savings'
+  accountNumber String?  @map("account_number") @db.VarChar(20) // Encrypted
+  accountHolder String?  @map("account_holder") @db.VarChar(100)
+
+  // PayPal
+  paypalEmail   String?  @map("paypal_email") @db.VarChar(255)
+
+  // Other
+  metadata      Json?    @db.JsonB
+
+  isVerified    Boolean  @default(false) @map("is_verified")
+  isDefault     Boolean  @default(false) @map("is_default")
+  createdAt     DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt     DateTime @updatedAt @map("updated_at") @db.Timestamptz
+
+  // Relations
+  user               User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  withdrawalRequests WithdrawalRequest[]
+
+  @@index([userId])
+  @@map("withdrawal_methods")
+}
+
+model WithdrawalRequest {
+  id                 String    @id @default(uuid()) @db.Uuid
+  userId             String    @map("user_id") @db.Uuid
+  withdrawalMethodId String    @map("withdrawal_method_id") @db.Uuid
+  amount             Int       // Amount in JPY
+  fee                Int       // Withdrawal fee
+  netAmount          Int       @map("net_amount") // Actual transfer amount
+  status             String    @db.VarChar(20) // 'pending', 'processing', 'completed', 'failed'
+  requestedAt        DateTime  @default(now()) @map("requested_at") @db.Timestamptz
+  processedAt        DateTime? @map("processed_at") @db.Timestamptz
+  errorMessage       String?   @map("error_message") @db.Text
+
+  // Relations
+  user             User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  withdrawalMethod WithdrawalMethod @relation(fields: [withdrawalMethodId], references: [id])
+
+  @@index([userId])
+  @@index([status])
+  @@index([requestedAt(sort: Desc)])
+  @@map("withdrawal_requests")
+}
+
+model TaxInfo {
+  id               String    @id @default(uuid()) @db.Uuid
+  userId           String    @unique @map("user_id") @db.Uuid
+  entityType       String    @map("entity_type") @db.VarChar(20) // 'individual', 'business'
+  individualNumber String?   @map("individual_number") @db.VarChar(255) // MyNumber (encrypted)
+  businessNumber   String?   @map("business_number") @db.VarChar(255) // Corporate number (encrypted)
+  name             String    @db.VarChar(100)
+  address          String    @db.Text
+  isVerified       Boolean   @default(false) @map("is_verified")
+  verifiedAt       DateTime? @map("verified_at") @db.Timestamptz
+  createdAt        DateTime  @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt        DateTime  @updatedAt @map("updated_at") @db.Timestamptz
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("tax_info")
 }

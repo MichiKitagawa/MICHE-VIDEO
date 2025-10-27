@@ -1,8 +1,8 @@
 # Backend Implementation Progress
 
-**最終更新**: 2025-10-27 22:00
+**最終更新**: 2025-10-27 23:00
 **Phase**: Phase 3 - Monetization（収益化）
-**全体進捗**: 50% (Phase 1: 90%, Phase 2: 70%, Phase 3: 40%)
+**全体進捗**: 55% (Phase 1: 90%, Phase 2: 70%, Phase 3: 65%)
 
 ---
 
@@ -215,7 +215,7 @@
 
 ---
 
-## 🚧 Phase 3: Monetization (収益化) - 40%完了
+## 🚧 Phase 3: Monetization (収益化) - 65%完了
 
 ### 1. Stripe統合 ✅
 - [x] Stripe SDK インストール
@@ -285,6 +285,53 @@
 - [x] STRIPE_PRICE_PREMIUM
 - [x] STRIPE_PRICE_PREMIUM_PLUS
 - [x] FRONTEND_URL
+
+**TypeScriptビルド**: ✅ 成功
+
+### 7. 投げ銭機能（Tips） ✅
+- [x] Prismaスキーマ拡張
+  - [x] Tip model - 投げ銭記録
+  - [x] Earning model - クリエイター収益
+  - [x] WithdrawalMethod model - 出金方法（スケルトン）
+  - [x] WithdrawalRequest model - 出金申請（スケルトン）
+  - [x] TaxInfo model - 税務情報（スケルトン）
+- [x] Tip Infrastructure層
+  - [x] TipRepository実装
+    - [x] `create()` - 投げ銭作成
+    - [x] `findByFromUserId()` - 送信履歴
+    - [x] `findByToUserId()` - 受信履歴
+    - [x] `findByContent()` - コンテンツ別投げ銭
+    - [x] `updateStatus()` - ステータス更新
+  - [x] EarningRepository実装
+    - [x] `create()` - 収益作成
+    - [x] `findByUserId()` - 収益履歴
+    - [x] `findAvailableByUserId()` - 出金可能収益
+    - [x] `getStats()` - 収益統計（残高、内訳）
+    - [x] `updateStatus()` - ステータス更新
+- [x] Monetization Application層
+  - [x] MonetizationService実装
+    - [x] `sendTip()` - 投げ銭送信（Stripe Payment Intent）
+    - [x] `confirmTipPayment()` - 決済確認（Webhook用）
+    - [x] `getSentTips()` - 送信履歴取得
+    - [x] `getReceivedTips()` - 受信履歴取得
+    - [x] `getContentTips()` - コンテンツ別投げ銭
+    - [x] `getEarningsStats()` - 収益統計
+    - [x] `getEarningsHistory()` - 収益履歴
+- [x] Monetization Interface層
+  - [x] MonetizationController実装
+    - [x] `POST /api/tips/send` - 投げ銭送信
+    - [x] `GET /api/tips/sent` - 送信履歴
+    - [x] `GET /api/tips/received` - 受信履歴
+    - [x] `GET /api/earnings/stats` - 収益統計
+    - [x] `GET /api/earnings/history` - 収益履歴
+    - [x] `GET /api/content/:contentType/:contentId/tips` - コンテンツ別投げ銭
+  - [x] Monetization Routes定義
+- [x] DI Container更新
+  - [x] Tip/Earning repositories登録
+  - [x] MonetizationService登録
+  - [x] MonetizationController登録
+- [x] プラットフォーム手数料 30%設定
+- [x] 出金可能期間 14日設定
 
 **TypeScriptビルド**: ✅ 成功
 

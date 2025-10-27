@@ -23,16 +23,22 @@ export const TYPES = {
   UserSubscriptionRepository: Symbol.for('UserSubscriptionRepository'),
   SubscriptionPaymentHistoryRepository: Symbol.for('SubscriptionPaymentHistoryRepository'),
 
+  // Repositories - Monetization
+  TipRepository: Symbol.for('TipRepository'),
+  EarningRepository: Symbol.for('EarningRepository'),
+
   // Services
   AuthService: Symbol.for('AuthService'),
   VideoService: Symbol.for('VideoService'),
   SubscriptionService: Symbol.for('SubscriptionService'),
+  MonetizationService: Symbol.for('MonetizationService'),
   EmailService: Symbol.for('EmailService'),
 
   // Controllers
   AuthController: Symbol.for('AuthController'),
   VideoController: Symbol.for('VideoController'),
   SubscriptionController: Symbol.for('SubscriptionController'),
+  MonetizationController: Symbol.for('MonetizationController'),
 
   // Infrastructure
   PrismaClient: Symbol.for('PrismaClient'),
