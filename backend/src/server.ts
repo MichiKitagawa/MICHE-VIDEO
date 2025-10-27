@@ -24,16 +24,24 @@ async function start() {
       environment: process.env.NODE_ENV || 'development',
     });
 
-    // Initialize AWS clients
-    logger.info('Initializing AWS clients...');
-    initS3Client();
-    initMediaConvertClient();
-    logger.info('AWS clients initialized successfully');
+    // Initialize AWS clients (optional in development)
+    if (process.env.AWS_ACCESS_KEY_ID && process.env.AWS_SECRET_ACCESS_KEY) {
+      logger.info('Initializing AWS clients...');
+      initS3Client();
+      initMediaConvertClient();
+      logger.info('AWS clients initialized successfully');
+    } else {
+      logger.warn('AWS credentials not configured, skipping AWS client initialization');
+    }
 
-    // Initialize Stripe client
-    logger.info('Initializing Stripe client...');
-    initStripeClient();
-    logger.info('Stripe client initialized successfully');
+    // Initialize Stripe client (optional in development)
+    if (process.env.STRIPE_SECRET_KEY) {
+      logger.info('Initializing Stripe client...');
+      initStripeClient();
+      logger.info('Stripe client initialized successfully');
+    } else {
+      logger.warn('Stripe secret key not configured, skipping Stripe client initialization');
+    }
 
     // Initialize Redis client
     logger.info('Initializing Redis client...');
