@@ -2,6 +2,7 @@
 node_modules/
 .pnp
 .pnp.js
+package-lock.json
 
 # Expo
 .expo/
@@ -28,27 +29,55 @@ yarn-debug.*
 yarn-error.*
 .pnpm-debug.log*
 
-# Local env files
-.env*.local
+# Environment Variables (Secrets)
 .env
+.env*.local
+.env.development
+.env.production
+.env.staging
+!.env.test
+!.env.example
+
+# AWS Credentials
+.aws/
+*.pem
+credentials.json
 
 # TypeScript
 *.tsbuildinfo
 
-# IDE
+# Backend Build
+backend/dist/
+backend/build/
+
+# Prisma
+backend/prisma/migrations/
+!backend/prisma/schema.prisma
+
+# IDE & Editors
 .vscode/
 .idea/
 *.swp
 *.swo
 *~
+.cursor/
+
+# MCP Server (Serena)
+.serena/
+**/.serena/
 
 # macOS
 .DS_Store
 *.pem
+.AppleDouble
+.LSOverride
 
 # Testing
 coverage/
 .nyc_output
+*.log
 
-# Build
-build/
+# Temporary
+tmp/
+temp/
+*.tmp
