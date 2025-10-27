@@ -26,6 +26,11 @@ export async function registerVideoRoutes(
     return videoController.getVideo(request, reply);
   });
 
+  // Get streaming URL
+  fastify.get('/api/videos/:id/stream', async (request: any, reply: any) => {
+    return videoController.getStreamUrl(request, reply);
+  });
+
   // Update video
   fastify.patch('/api/videos/:id', async (request: any, reply: any) => {
     return videoController.updateVideo(request, reply);

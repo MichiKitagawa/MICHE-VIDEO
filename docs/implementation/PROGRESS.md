@@ -1,8 +1,8 @@
 # Backend Implementation Progress
 
-**最終更新**: 2025-10-27 19:30
+**最終更新**: 2025-10-27 20:00
 **Phase**: Phase 2 - Content Delivery（コンテンツ配信）
-**全体進捗**: 38% (Phase 1: 90%, Phase 2: 60%)
+**全体進捗**: 40% (Phase 1: 90%, Phase 2: 70%)
 
 ---
 
@@ -190,9 +190,28 @@
   - [x] `DELETE /api/watch-history` - 全削除
 - [x] DI Container更新
 
-### 9. 進行中
+### 9. CloudFront CDN統合 ✅
+- [x] CloudFront Client wrapper作成
+- [x] 署名付きURL生成機能
+  - [x] `generateSignedStreamUrl()` - HLS署名付きURL
+  - [x] `generateSignedThumbnailUrl()` - サムネイル署名付きURL
+  - [x] `generateHlsUrl()` - HLSマスタープレイリストURL
+  - [x] `extractS3KeyFromUrl()` - S3キー抽出
+  - [x] `isCloudFrontConfigured()` - 設定確認
+- [x] Video Service - ストリーミング機能
+  - [x] `getStreamUrl()` - 署名付きストリーミングURL取得
+  - [x] プライバシー権限チェック
+  - [x] CloudFront/S3フォールバック
+- [x] Video Controller - ストリーミングエンドポイント
+  - [x] `GET /api/videos/:id/stream` - ストリーミングURL取得
+- [x] 環境変数設定
+  - [x] CLOUDFRONT_DOMAIN
+  - [x] CLOUDFRONT_KEY_PAIR_ID
+  - [x] CLOUDFRONT_PRIVATE_KEY
+
+### 10. 進行中
 - [ ] 統合テスト実装
-- [ ] CloudFront CDN設定
+- [ ] 基本検索機能
 
 ## ⏳ 未着手 (Pending)
 

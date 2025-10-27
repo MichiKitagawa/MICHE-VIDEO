@@ -26,6 +26,12 @@ import {
   generateMediaConvertInputPath,
   generateMediaConvertOutputPrefix,
 } from '@/shared/infrastructure/mediaconvert-client';
+import {
+  generateSignedStreamUrl,
+  generateHlsUrl,
+  isCloudFrontConfigured,
+  extractS3KeyFromUrl,
+} from '@/shared/infrastructure/cloudfront-client';
 
 export interface InitiateUploadDto {
   userId: string;
@@ -109,6 +115,46 @@ export class VideoService {
    */
   async getVideoById(videoId: string): Promise<Video | null> {
     return this.videoRepo.findById(videoId);
+  }
+
+  /**
+   * Get signed streaming URL for video
+   */
+  async getStreamUrl(videoId: string, userId: string): Promise<{ streamUrl: string; thumbnailUrl?: string }> {
+    const video = await this.videoRepo.findById(videoId);
+    if (!video) {
+      throw new Error('Video not found');
+    }
+
+    // Check if video is ready
+    if (video.status !== 'ready') {
+      throw new Error('Video is not ready for streaming');
+    }
+
+    // Check access permissions
+    if (video.privacy === 'private' && video.userId !== userId) {
+      throw new Error('Unauthorized: Private video');
+    }
+
+    // Generate signed CloudFront URL if configured
+    if (isCloudFrontConfigured() && video.hlsUrl) {
+      const s3Key = extractS3KeyFromUrl(video.hlsUrl);
+      const streamUrl = generateSignedStreamUrl(s3Key, 86400); // 24 hours
+
+      let thumbnailUrl: string | undefined;
+      if (video.thumbnailUrl) {
+        const thumbnailKey = extractS3KeyFromUrl(video.thumbnailUrl);
+        thumbnailUrl = generateSignedStreamUrl(thumbnailKey, 86400);
+      }
+
+      return { streamUrl, thumbnailUrl };
+    }
+
+    // Fallback to direct S3 URL (not recommended for production)
+    return {
+      streamUrl: video.hlsUrl || '',
+      thumbnailUrl: video.thumbnailUrl || undefined,
+    };
   }
 
   /**

@@ -170,6 +170,45 @@ export class VideoController {
   }
 
   /**
+   * GET /api/videos/:id/stream
+   * Get signed streaming URL
+   */
+  async getStreamUrl(
+    request: FastifyRequest<{ Params: VideoIdParams }>,
+    reply: FastifyReply
+  ): Promise<void> {
+    try {
+      // Extract userId from JWT (optional for public videos)
+      const authHeader = request.headers.authorization;
+      let userId = '';
+
+      if (authHeader) {
+        try {
+          const token = authHeader.replace('Bearer ', '');
+          const decoded = verifyAccessToken(token);
+          userId = decoded.sub;
+        } catch {
+          // Ignore JWT errors for public videos
+        }
+      }
+
+      const result = await this.videoService.getStreamUrl(request.params.id, userId);
+
+      reply.send({
+        success: true,
+        data: result,
+      });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to get stream URL';
+      const statusCode = message.includes('Unauthorized') ? 403 : message.includes('not found') ? 404 : 400;
+      reply.code(statusCode).send({
+        success: false,
+        error: message,
+      });
+    }
+  }
+
+  /**
    * PATCH /api/videos/:id
    * Update video metadata
    */
