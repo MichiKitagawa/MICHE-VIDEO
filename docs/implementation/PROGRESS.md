@@ -1,8 +1,8 @@
 # Backend Implementation Progress
 
-**最終更新**: 2025-10-27 20:00
-**Phase**: Phase 2 - Content Delivery（コンテンツ配信）
-**全体進捗**: 40% (Phase 1: 90%, Phase 2: 70%)
+**最終更新**: 2025-10-27 22:00
+**Phase**: Phase 3 - Monetization（収益化）
+**全体進捗**: 50% (Phase 1: 90%, Phase 2: 70%, Phase 3: 40%)
 
 ---
 
@@ -213,19 +213,94 @@
 - [ ] 統合テスト実装
 - [ ] 基本検索機能
 
+---
+
+## 🚧 Phase 3: Monetization (収益化) - 40%完了
+
+### 1. Stripe統合 ✅
+- [x] Stripe SDK インストール
+- [x] Stripe Client wrapper作成
+  - [x] `initStripeClient()` - クライアント初期化
+  - [x] `createCheckoutSession()` - チェックアウトセッション作成
+  - [x] `createPortalSession()` - カスタマーポータルセッション作成
+  - [x] `cancelSubscription()` - サブスク解約
+  - [x] `getSubscription()` - サブスク取得
+  - [x] `constructWebhookEvent()` - Webhook検証
+- [x] サーバー起動時のStripe初期化
+
+### 2. Subscription Infrastructure層 ✅
+- [x] Subscription Repository interfaces定義
+- [x] SubscriptionPlanRepository実装
+  - [x] `findAll()` - 全プラン取得
+  - [x] `findById()` - ID検索
+  - [x] `findByPaymentProvider()` - プロバイダー別取得
+  - [x] `findActive()` - アクティブプラン取得
+- [x] UserSubscriptionRepository実装
+  - [x] `create()` - サブスク作成
+  - [x] `findActiveByUserId()` - アクティブサブスク取得
+  - [x] `findByExternalId()` - 外部ID検索
+  - [x] `update()` - サブスク更新
+  - [x] `cancelAtPeriodEnd()` - 期間終了時解約
+  - [x] `cancelImmediately()` - 即座解約
+- [x] SubscriptionPaymentHistoryRepository実装
+  - [x] `create()` - 決済履歴作成
+  - [x] `findByUserId()` - ユーザー別履歴取得
+  - [x] `findBySubscriptionId()` - サブスク別履歴取得
+  - [x] `findByExternalPaymentId()` - 外部ID検索
+
+### 3. Subscription Application層 ✅
+- [x] Subscription Service実装
+  - [x] `getPlans()` - プラン一覧取得
+  - [x] `getCurrentSubscription()` - 現在のサブスク取得
+  - [x] `createCheckoutSession()` - Stripe決済開始
+  - [x] `cancelSubscription()` - サブスク解約
+  - [x] `getPaymentHistory()` - 決済履歴取得
+  - [x] `handleStripeWebhook()` - Webhookイベント処理
+    - [x] checkout.session.completed - サブスク作成
+    - [x] invoice.payment_succeeded - 決済成功
+    - [x] invoice.payment_failed - 決済失敗
+    - [x] customer.subscription.updated - サブスク更新
+    - [x] customer.subscription.deleted - サブスク削除
+
+### 4. Subscription Interface層 ✅
+- [x] Subscription Controller実装
+  - [x] `GET /api/subscriptions/plans` - プラン一覧
+  - [x] `GET /api/subscriptions/current` - 現在のサブスク
+  - [x] `POST /api/subscriptions/create-checkout` - チェックアウト開始
+  - [x] `POST /api/payment/stripe/checkout` - エイリアス
+  - [x] `POST /api/subscriptions/cancel` - サブスク解約
+  - [x] `GET /api/subscriptions/payment-history` - 決済履歴
+  - [x] `POST /api/webhooks/stripe` - Stripe Webhook
+- [x] Subscription Routes定義
+
+### 5. DI Container更新 ✅
+- [x] Subscription repositories登録
+- [x] Subscription Service登録
+- [x] Subscription Controller登録
+- [x] TYPES定義更新
+
+### 6. 環境変数設定 ✅
+- [x] STRIPE_SECRET_KEY
+- [x] STRIPE_WEBHOOK_SECRET
+- [x] STRIPE_PRICE_PREMIUM
+- [x] STRIPE_PRICE_PREMIUM_PLUS
+- [x] FRONTEND_URL
+
+**TypeScriptビルド**: ✅ 成功
+
+---
+
 ## ⏳ 未着手 (Pending)
 
 ### Phase 2 残タスク
-- [ ] CloudFront CDN設定
-- [ ] HLS ストリーミング
-- [ ] 視聴履歴・進捗管理
+- [ ] 統合テスト実装
 - [ ] 基本検索機能
 
-### Phase 3: Monetization (収益化)
-- [ ] Stripe統合
-- [ ] サブスクリプション管理
+### Phase 3 残タスク
+- [ ] CCBill統合（Stretch Goal 4）
 - [ ] 投げ銭機能
-- [ ] プレイリスト
+- [ ] プレイリストCRUD
+- [ ] クリエイター収益管理
 
 ### Phase 4: Polish & Optimization (仕上げ)
 - [ ] パフォーマンス最適化

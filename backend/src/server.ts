@@ -9,6 +9,7 @@ import { createContainer } from './container';
 import { createApp } from './app';
 import { initS3Client } from './shared/infrastructure/s3-client';
 import { initMediaConvertClient } from './shared/infrastructure/mediaconvert-client';
+import { initStripeClient } from './shared/infrastructure/stripe-client';
 
 const PORT = parseInt(process.env.PORT || '4000');
 const HOST = process.env.HOST || '0.0.0.0';
@@ -19,6 +20,10 @@ async function start() {
     console.log('Initializing AWS clients...');
     initS3Client();
     initMediaConvertClient();
+
+    // Initialize Stripe client
+    console.log('Initializing Stripe client...');
+    initStripeClient();
 
     // Create DI container
     const container = createContainer();

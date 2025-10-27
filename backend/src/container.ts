@@ -35,13 +35,25 @@ import { VideoCommentRepository } from '@/modules/video/infrastructure/video-com
 import { VideoViewRepository } from '@/modules/video/infrastructure/video-view-repository';
 import { WatchHistoryRepository } from '@/modules/video/infrastructure/watch-history-repository';
 
+// Repositories - Subscription
+import {
+  ISubscriptionPlanRepository,
+  IUserSubscriptionRepository,
+  ISubscriptionPaymentHistoryRepository,
+} from '@/modules/subscription/infrastructure/interfaces';
+import { SubscriptionPlanRepository } from '@/modules/subscription/infrastructure/subscription-plan-repository';
+import { UserSubscriptionRepository } from '@/modules/subscription/infrastructure/user-subscription-repository';
+import { SubscriptionPaymentHistoryRepository } from '@/modules/subscription/infrastructure/payment-history-repository';
+
 // Services
 import { AuthService } from '@/application/services/auth-service';
 import { VideoService } from '@/application/services/video-service';
+import { SubscriptionService } from '@/application/services/subscription-service';
 
 // Controllers
 import { AuthController } from '@/interface/http/controllers/auth-controller';
 import { VideoController } from '@/interface/http/controllers/video-controller';
+import { SubscriptionController } from '@/interface/http/controllers/subscription-controller';
 
 /**
  * Create and configure the DI container.
@@ -65,13 +77,20 @@ export function createContainer(): Container {
   container.bind<IVideoViewRepository>(TYPES.VideoViewRepository).to(VideoViewRepository);
   container.bind<IWatchHistoryRepository>(TYPES.WatchHistoryRepository).to(WatchHistoryRepository);
 
+  // Bind Repositories - Subscription
+  container.bind<ISubscriptionPlanRepository>(TYPES.SubscriptionPlanRepository).to(SubscriptionPlanRepository);
+  container.bind<IUserSubscriptionRepository>(TYPES.UserSubscriptionRepository).to(UserSubscriptionRepository);
+  container.bind<ISubscriptionPaymentHistoryRepository>(TYPES.SubscriptionPaymentHistoryRepository).to(SubscriptionPaymentHistoryRepository);
+
   // Bind Services
   container.bind<AuthService>(TYPES.AuthService).to(AuthService);
   container.bind<VideoService>(TYPES.VideoService).to(VideoService);
+  container.bind<SubscriptionService>(TYPES.SubscriptionService).to(SubscriptionService);
 
   // Bind Controllers
   container.bind<AuthController>(TYPES.AuthController).to(AuthController);
   container.bind<VideoController>(TYPES.VideoController).to(VideoController);
+  container.bind<SubscriptionController>(TYPES.SubscriptionController).to(SubscriptionController);
 
   return container;
 }

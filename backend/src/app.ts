@@ -14,6 +14,7 @@ import { AuthController } from '@/interface/http/controllers/auth-controller';
 import { VideoController } from '@/interface/http/controllers/video-controller';
 import { registerAuthRoutes } from '@/interface/http/routes/auth-routes';
 import { registerVideoRoutes } from '@/interface/http/routes/video-routes';
+import { subscriptionRoutes } from '@/interface/http/routes/subscription-routes';
 
 export async function createApp(container: Container): Promise<FastifyInstance> {
   const fastify = Fastify({
@@ -53,6 +54,8 @@ export async function createApp(container: Container): Promise<FastifyInstance> 
 
   const videoController = container.get<VideoController>(TYPES.VideoController);
   await registerVideoRoutes(fastify, videoController);
+
+  await subscriptionRoutes(fastify, container);
 
   return fastify;
 }
