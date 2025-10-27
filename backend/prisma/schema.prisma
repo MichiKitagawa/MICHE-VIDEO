@@ -38,6 +38,7 @@ model User {
   videoLikes          VideoLike[]
   videoComments       VideoComment[]
   videoViews          VideoView[]
+  watchHistory        WatchHistory[]
 
   @@index([email])
   @@index([createdAt])
@@ -235,12 +236,13 @@ model Video {
   updatedAt       DateTime  @updatedAt @map("updated_at") @db.Timestamptz
 
   // Relations
-  user     User           @relation(fields: [userId], references: [id], onDelete: Cascade)
-  category VideoCategory? @relation(fields: [categoryId], references: [id])
-  tags     VideoTag[]
-  likes    VideoLike[]
-  comments VideoComment[]
-  views    VideoView[]
+  user         User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  category     VideoCategory? @relation(fields: [categoryId], references: [id])
+  tags         VideoTag[]
+  likes        VideoLike[]
+  comments     VideoComment[]
+  views        VideoView[]
+  watchHistory WatchHistory[]
 
   @@index([userId])
   @@index([categoryId])
@@ -323,4 +325,26 @@ model VideoView {
   @@index([userId])
   @@index([createdAt])
   @@map("video_views")
+}
+
+model WatchHistory {
+  id              String   @id @default(uuid()) @db.Uuid
+  userId          String   @map("user_id") @db.Uuid
+  videoId         String   @map("video_id") @db.Uuid
+  progressSeconds Int      @default(0) @map("progress_seconds") // Current playback position
+  durationSeconds Int?     @map("duration_seconds") // Total video duration
+  lastWatchedAt   DateTime @default(now()) @map("last_watched_at") @db.Timestamptz
+  completed       Boolean  @default(false) // Watched to the end
+  createdAt       DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt       DateTime @updatedAt @map("updated_at") @db.Timestamptz
+
+  // Relations
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  video Video @relation(fields: [videoId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, videoId])
+  @@index([userId])
+  @@index([videoId])
+  @@index([lastWatchedAt])
+  @@map("watch_history")
 }

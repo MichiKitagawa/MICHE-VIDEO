@@ -4,7 +4,7 @@
  * Defines contracts for video data access layer.
  */
 
-import { Video, VideoTag, VideoLike, VideoComment, VideoView } from '@prisma/client';
+import { Video, VideoTag, VideoLike, VideoComment, VideoView, WatchHistory } from '@prisma/client';
 
 export interface CreateVideoDto {
   userId: string;
@@ -85,4 +85,22 @@ export interface IVideoCommentRepository {
 export interface IVideoViewRepository {
   create(videoId: string, userId: string | null, ipAddress: string, duration: number): Promise<VideoView>;
   findRecentView(videoId: string, userId: string | null, ipAddress: string, minutes: number): Promise<VideoView | null>;
+}
+
+/**
+ * Watch History Repository Interface
+ */
+export interface UpdateProgressDto {
+  userId: string;
+  videoId: string;
+  progressSeconds: number;
+  durationSeconds?: number;
+}
+
+export interface IWatchHistoryRepository {
+  upsertProgress(data: UpdateProgressDto): Promise<WatchHistory>;
+  findByUserAndVideo(userId: string, videoId: string): Promise<WatchHistory | null>;
+  findByUserId(userId: string, limit?: number, offset?: number): Promise<WatchHistory[]>;
+  deleteByUserAndVideo(userId: string, videoId: string): Promise<void>;
+  deleteAllByUser(userId: string): Promise<number>;
 }
