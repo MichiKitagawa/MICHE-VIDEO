@@ -1,8 +1,8 @@
 # Backend Implementation Progress
 
-**最終更新**: 2025-10-28 00:15
+**最終更新**: 2025-10-28 00:45
 **Phase**: Phase 4 - Polish & Optimization（仕上げ・最適化）
-**全体進捗**: 68% (Phase 1: 90%, Phase 2: 80%, Phase 3: 85%, Phase 4: 30%)
+**全体進捗**: 72% (Phase 1: 90%, Phase 2: 80%, Phase 3: 85%, Phase 4: 60%)
 
 ---
 
@@ -404,7 +404,7 @@
 
 ---
 
-## 🚧 Phase 4: Polish & Optimization (仕上げ) - 30%完了
+## 🚧 Phase 4: Polish & Optimization (仕上げ) - 60%完了
 
 ### 1. ソーシャル機能 ✅
 - [x] Prismaスキーマ拡張
@@ -474,6 +474,57 @@
 
 **TypeScriptビルド**: ✅ 成功
 
+### 2. チャンネル/クリエイタープロフィール機能 ✅
+- [x] Prismaスキーマ拡張
+  - [x] Channel model - チャンネル基本情報
+  - [x] ChannelLink model - SNSリンク
+  - [x] User relationshipを更新
+- [x] Channel Infrastructure層
+  - [x] ChannelRepository実装
+    - [x] `create()` - チャンネル作成
+    - [x] `findById()`/`findByUserId()` - チャンネル取得（nested user, links）
+    - [x] `update()` - チャンネル更新
+    - [x] `delete()` - チャンネル削除
+    - [x] `incrementSubscriberCount()`/`decrementSubscriberCount()` - サブスクライバー数管理
+    - [x] `incrementTotalViews()` - 総視聴回数更新
+    - [x] `incrementTotalVideos()`/`decrementTotalVideos()` - 動画数管理
+  - [x] ChannelLinkRepository実装
+    - [x] `create()` - リンク作成
+    - [x] `findByChannelId()` - リンク一覧取得
+    - [x] `deleteByChannelId()` - リンク削除
+    - [x] `bulkCreate()` - 一括作成（既存削除後）
+- [x] Channel Application層
+  - [x] ChannelService実装
+    - [x] `createChannel()` - チャンネル作成（クリエイター権限チェック）
+    - [x] `getChannelById()` - 公開チャンネル取得（UserStats統合）
+    - [x] `getChannelByUserId()` - ユーザーIDからチャンネル取得
+    - [x] `getMyChannel()` - 自分のチャンネル取得（自動作成機能）
+    - [x] `updateChannel()` - チャンネル更新（バリデーション、リンク更新）
+    - [x] `applyForCreator()` - クリエイター申請（MVP: 自動承認）
+- [x] Channel Interface層
+  - [x] ChannelController実装
+    - [x] `GET /api/channels/:id` - 公開チャンネル取得
+    - [x] `GET /api/channels/my-channel` - 自分のチャンネル取得
+    - [x] `PATCH /api/channels/my-channel` - チャンネル更新
+    - [x] `POST /api/creators/apply` - クリエイター申請
+    - [x] `GET /api/channels/user/:userId` - ユーザーIDからチャンネル取得
+  - [x] Channel Routes定義
+- [x] DI Container更新
+  - [x] Channel/ChannelLink repositories登録
+  - [x] ChannelService登録
+  - [x] ChannelController登録
+- [x] Auth infrastructure更新
+  - [x] UpdateUserDtoに isCreator フィールド追加
+- [x] ビジネスルール
+  - [x] クリエイター権限チェック
+  - [x] チャンネル重複作成防止
+  - [x] 名前バリデーション（最大100文字）
+  - [x] チャンネル自動作成（クリエイター初回アクセス時）
+  - [x] UserStatsとの統合で統計情報提供
+  - [x] SNSリンク一括更新（既存削除→新規作成）
+
+**TypeScriptビルド**: ✅ 成功
+
 ---
 
 ## ⏳ 未着手 (Pending)
@@ -486,7 +537,6 @@
 
 ### Phase 4 残タスク
 - [ ] パフォーマンス最適化（DB indexes, query tuning, Redis caching, CDN）
-- [ ] チャンネル機能（creator profile, channel settings, basic stats）
 - [ ] セキュリティ強化（WAF, Rate limiting enhancement, CORS, SSL/TLS, security headers）
 - [ ] 監視・ロギング（CloudWatch, Winston, Sentry, performance monitoring）
 - [ ] ドキュメント整備（API specs, deploy guide, ops manual）

@@ -19,6 +19,7 @@ export interface UpdateUserDto {
   bio?: string;
   avatarUrl?: string;
   isEmailVerified?: boolean;
+  isCreator?: boolean;
   lastLoginAt?: Date;
   passwordHash?: string;
 }

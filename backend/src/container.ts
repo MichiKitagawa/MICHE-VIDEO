@@ -71,6 +71,14 @@ import { FollowRepository } from '@/modules/social/infrastructure/follow-reposit
 import { NotificationRepository } from '@/modules/social/infrastructure/notification-repository';
 import { UserStatsRepository } from '@/modules/social/infrastructure/user-stats-repository';
 
+// Repositories - Channel
+import {
+  IChannelRepository,
+  IChannelLinkRepository,
+} from '@/modules/channel/infrastructure/interfaces';
+import { ChannelRepository } from '@/modules/channel/infrastructure/channel-repository';
+import { ChannelLinkRepository } from '@/modules/channel/infrastructure/channel-link-repository';
+
 // Services
 import { AuthService } from '@/application/services/auth-service';
 import { VideoService } from '@/application/services/video-service';
@@ -78,6 +86,7 @@ import { SubscriptionService } from '@/application/services/subscription-service
 import { MonetizationService } from '@/application/services/monetization-service';
 import { PlaylistService } from '@/application/services/playlist-service';
 import { SocialService } from '@/application/services/social-service';
+import { ChannelService } from '@/application/services/channel-service';
 
 // Controllers
 import { AuthController } from '@/interface/http/controllers/auth-controller';
@@ -86,6 +95,7 @@ import { SubscriptionController } from '@/interface/http/controllers/subscriptio
 import { MonetizationController } from '@/interface/http/controllers/monetization-controller';
 import { PlaylistController } from '@/interface/http/controllers/playlist-controller';
 import { SocialController } from '@/interface/http/controllers/social-controller';
+import { ChannelController } from '@/interface/http/controllers/channel-controller';
 
 /**
  * Create and configure the DI container.
@@ -127,6 +137,10 @@ export function createContainer(): Container {
   container.bind<INotificationRepository>(TYPES.NotificationRepository).to(NotificationRepository);
   container.bind<IUserStatsRepository>(TYPES.UserStatsRepository).to(UserStatsRepository);
 
+  // Bind Repositories - Channel
+  container.bind<IChannelRepository>(TYPES.ChannelRepository).to(ChannelRepository);
+  container.bind<IChannelLinkRepository>(TYPES.ChannelLinkRepository).to(ChannelLinkRepository);
+
   // Bind Services
   container.bind<AuthService>(TYPES.AuthService).to(AuthService);
   container.bind<VideoService>(TYPES.VideoService).to(VideoService);
@@ -134,6 +148,7 @@ export function createContainer(): Container {
   container.bind<MonetizationService>(TYPES.MonetizationService).to(MonetizationService);
   container.bind<PlaylistService>(TYPES.PlaylistService).to(PlaylistService);
   container.bind<SocialService>(TYPES.SocialService).to(SocialService);
+  container.bind<ChannelService>(TYPES.ChannelService).to(ChannelService);
 
   // Bind Controllers
   container.bind<AuthController>(TYPES.AuthController).to(AuthController);
@@ -142,6 +157,7 @@ export function createContainer(): Container {
   container.bind<MonetizationController>(TYPES.MonetizationController).to(MonetizationController);
   container.bind<PlaylistController>(TYPES.PlaylistController).to(PlaylistController);
   container.bind<SocialController>(TYPES.SocialController).to(SocialController);
+  container.bind<ChannelController>(TYPES.ChannelController).to(ChannelController);
 
   return container;
 }

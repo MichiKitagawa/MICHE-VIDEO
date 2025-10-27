@@ -50,6 +50,7 @@ model User {
   following           Follow[]             @relation("Follower")
   notifications       Notification[]
   userStats           UserStats?
+  channel             Channel?
 
   @@index([email])
   @@index([createdAt])
@@ -591,4 +592,46 @@ model UserStats {
   @@index([userId])
   @@index([followerCount(sort: Desc)])
   @@map("user_stats")
+}
+
+// =====================================
+// 8. Channel Management
+// =====================================
+
+model Channel {
+  id              String   @id @default(uuid()) @db.Uuid
+  userId          String   @unique @map("user_id") @db.Uuid
+  name            String   @db.VarChar(100)
+  description     String?  @db.Text
+  avatarUrl       String?  @map("avatar_url") @db.VarChar(500)
+  bannerUrl       String?  @map("banner_url") @db.VarChar(500)
+  subscriberCount Int      @default(0) @map("subscriber_count")
+  totalViews      BigInt   @default(0) @map("total_views")
+  totalVideos     Int      @default(0) @map("total_videos")
+  totalShorts     Int      @default(0) @map("total_shorts")
+  isVerified      Boolean  @default(false) @map("is_verified")
+  createdAt       DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt       DateTime @updatedAt @map("updated_at") @db.Timestamptz
+
+  // Relations
+  user  User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  links ChannelLink[]
+
+  @@index([userId])
+  @@index([subscriberCount(sort: Desc)])
+  @@map("channels")
+}
+
+model ChannelLink {
+  id        String   @id @default(uuid()) @db.Uuid
+  channelId String   @map("channel_id") @db.Uuid
+  platform  String   @db.VarChar(50) // 'twitter', 'instagram', 'youtube', 'website', 'facebook', 'tiktok'
+  url       String   @db.VarChar(500)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  // Relations
+  channel Channel @relation(fields: [channelId], references: [id], onDelete: Cascade)
+
+  @@index([channelId])
+  @@map("channel_links")
 }
