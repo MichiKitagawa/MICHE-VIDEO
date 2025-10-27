@@ -18,6 +18,12 @@ import {
   VideoListFilters,
 } from '@/modules/video/infrastructure/interfaces';
 import { generateUploadUrl, generateVideoKey, generateThumbnailKey } from '@/shared/infrastructure/s3-client';
+import {
+  createTranscodingJob,
+  getJobStatus,
+  generateMediaConvertInputPath,
+  generateMediaConvertOutputPrefix,
+} from '@/shared/infrastructure/mediaconvert-client';
 
 export interface InitiateUploadDto {
   userId: string;
@@ -48,6 +54,11 @@ export interface RecordViewDto {
   userId: string | null;
   ipAddress: string;
   duration: number;
+}
+
+export interface CompleteUploadDto {
+  videoId: string;
+  userId: string;
 }
 
 @injectable()
@@ -255,5 +266,79 @@ export class VideoService {
     return this.videoRepo.update(videoId, {
       publishedAt: new Date(),
     });
+  }
+
+  /**
+   * Complete upload and start transcoding
+   */
+  async completeUpload(dto: CompleteUploadDto): Promise<{ message: string; jobId?: string }> {
+    const video = await this.videoRepo.findById(dto.videoId);
+    if (!video) {
+      throw new Error('Video not found');
+    }
+    if (video.userId !== dto.userId) {
+      throw new Error('Unauthorized: Not video owner');
+    }
+    if (!video.s3Key) {
+      throw new Error('Video S3 key not found');
+    }
+
+    try {
+      // Start transcoding
+      const jobId = await this.startTranscoding(video.id, video.userId, video.s3Key);
+
+      return {
+        message: 'Transcoding started',
+        jobId,
+      };
+    } catch (error) {
+      // Update video status to failed
+      await this.videoRepo.update(video.id, {
+        status: 'failed',
+      });
+
+      throw error;
+    }
+  }
+
+  /**
+   * Start MediaConvert transcoding job
+   */
+  async startTranscoding(videoId: string, userId: string, s3Key: string): Promise<string> {
+    const bucket = process.env.AWS_S3_BUCKET || '';
+
+    // Generate input/output paths
+    const inputPath = generateMediaConvertInputPath(bucket, s3Key);
+    const outputPrefix = generateMediaConvertOutputPrefix(bucket, videoId, userId);
+
+    // Create MediaConvert job
+    const jobId = await createTranscodingJob(inputPath, outputPrefix, videoId);
+
+    return jobId;
+  }
+
+  /**
+   * Handle transcoding completion webhook
+   */
+  async handleTranscodingComplete(videoId: string, success: boolean, hlsUrl?: string): Promise<void> {
+    if (success && hlsUrl) {
+      // Update video status to ready
+      await this.videoRepo.update(videoId, {
+        status: 'ready',
+        hlsUrl,
+      });
+    } else {
+      // Update video status to failed
+      await this.videoRepo.update(videoId, {
+        status: 'failed',
+      });
+    }
+  }
+
+  /**
+   * Get transcoding job status
+   */
+  async getTranscodingStatus(jobId: string): Promise<string> {
+    return getJobStatus(jobId);
   }
 }

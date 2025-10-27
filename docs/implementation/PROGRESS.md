@@ -1,8 +1,8 @@
 # Backend Implementation Progress
 
-**最終更新**: 2025-10-27 18:30
+**最終更新**: 2025-10-27 19:00
 **Phase**: Phase 2 - Content Delivery（コンテンツ配信）
-**全体進捗**: 32% (Phase 1: 90%, Phase 2: 30%)
+**全体進捗**: 35% (Phase 1: 90%, Phase 2: 45%)
 
 ---
 
@@ -153,9 +153,25 @@
 - [x] Video Controller登録
 - [x] TYPES定義更新
 
-### 7. 進行中
-- [ ] MediaConvert統合
+### 7. MediaConvert統合 ✅
+- [x] MediaConvert Client wrapper作成
+- [x] HLSトランスコードジョブ生成（1080p, 720p, 480p）
+- [x] サムネイル自動生成（3枚）
+- [x] Video Service - トランスコード機能
+  - [x] `completeUpload()` - アップロード完了＆トランスコード開始
+  - [x] `startTranscoding()` - MediaConvertジョブ作成
+  - [x] `handleTranscodingComplete()` - 完了コールバック
+  - [x] `getTranscodingStatus()` - ステータス取得
+- [x] Video Controller - トランスコードエンドポイント
+  - [x] `POST /api/videos/:id/complete` - アップロード完了
+  - [x] `POST /api/webhooks/mediaconvert` - Webhook受信
+  - [x] `GET /api/videos/:id/transcoding-status` - ステータス取得
+- [x] Video Routes更新
+- [x] サーバー起動時のAWSクライアント初期化
+
+### 8. 進行中
 - [ ] 統合テスト実装
+- [ ] CloudFront CDN設定
 
 ## ⏳ 未着手 (Pending)
 

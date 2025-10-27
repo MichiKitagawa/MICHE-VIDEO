@@ -70,4 +70,19 @@ export async function registerVideoRoutes(
   fastify.post('/api/videos/:id/publish', async (request: any, reply: any) => {
     return videoController.publishVideo(request, reply);
   });
+
+  // Complete upload and start transcoding
+  fastify.post('/api/videos/:id/complete', async (request: any, reply: any) => {
+    return videoController.completeUpload(request, reply);
+  });
+
+  // Get transcoding status
+  fastify.get('/api/videos/:id/transcoding-status', async (request: any, reply: any) => {
+    return videoController.getTranscodingStatus(request, reply);
+  });
+
+  // MediaConvert webhook
+  fastify.post('/api/webhooks/mediaconvert', async (request: any, reply: any) => {
+    return videoController.handleMediaConvertWebhook(request, reply);
+  });
 }

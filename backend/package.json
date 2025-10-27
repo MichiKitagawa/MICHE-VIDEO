@@ -17,6 +17,7 @@
     "format": "prettier --write \"src/**/*.ts\" \"tests/**/*.ts\""
   },
   "dependencies": {
+    "@aws-sdk/client-mediaconvert": "^3.917.0",
     "@aws-sdk/client-s3": "^3.917.0",
     "@aws-sdk/s3-request-presigner": "^3.917.0",
     "@fastify/cors": "^8.5.0",

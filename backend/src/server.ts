@@ -7,12 +7,19 @@
 import 'reflect-metadata';
 import { createContainer } from './container';
 import { createApp } from './app';
+import { initS3Client } from './shared/infrastructure/s3-client';
+import { initMediaConvertClient } from './shared/infrastructure/mediaconvert-client';
 
 const PORT = parseInt(process.env.PORT || '4000');
 const HOST = process.env.HOST || '0.0.0.0';
 
 async function start() {
   try {
+    // Initialize AWS clients
+    console.log('Initializing AWS clients...');
+    initS3Client();
+    initMediaConvertClient();
+
     // Create DI container
     const container = createContainer();
 

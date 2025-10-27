@@ -509,4 +509,119 @@ export class VideoController {
       });
     }
   }
+
+  /**
+   * POST /api/videos/:id/complete
+   * Complete upload and start transcoding
+   */
+  async completeUpload(
+    request: FastifyRequest<{ Params: VideoIdParams }>,
+    reply: FastifyReply
+  ): Promise<void> {
+    try {
+      // Extract userId from JWT
+      const authHeader = request.headers.authorization;
+      if (!authHeader) {
+        return reply.code(401).send({
+          success: false,
+          error: 'Authorization header required',
+        });
+      }
+
+      const token = authHeader.replace('Bearer ', '');
+      const decoded = verifyAccessToken(token);
+      const userId = decoded.sub;
+
+      const result = await this.videoService.completeUpload({
+        videoId: request.params.id,
+        userId,
+      });
+
+      reply.send({
+        success: true,
+        data: result,
+      });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to complete upload';
+      const statusCode = message.includes('Unauthorized') ? 403 : 400;
+      reply.code(statusCode).send({
+        success: false,
+        error: message,
+      });
+    }
+  }
+
+  /**
+   * POST /api/webhooks/mediaconvert
+   * MediaConvert webhook handler
+   */
+  async handleMediaConvertWebhook(
+    request: FastifyRequest<{ Body: any }>,
+    reply: FastifyReply
+  ): Promise<void> {
+    try {
+      const event: any = request.body;
+
+      // Parse MediaConvert event
+      if (event.detail?.status === 'COMPLETE' && event.detail?.userMetadata?.videoId) {
+        const videoId = event.detail.userMetadata.videoId;
+        const outputGroupDetails = event.detail.outputGroupDetails || [];
+
+        // Find HLS output
+        let hlsUrl: string | undefined;
+        for (const group of outputGroupDetails) {
+          if (group.type === 'HLS_GROUP' && group.outputDetails?.[0]?.outputFilePaths?.[0]) {
+            hlsUrl = group.outputDetails[0].outputFilePaths[0];
+            break;
+          }
+        }
+
+        await this.videoService.handleTranscodingComplete(videoId, true, hlsUrl);
+      } else if (event.detail?.status === 'ERROR' && event.detail?.userMetadata?.videoId) {
+        const videoId = event.detail.userMetadata.videoId;
+        await this.videoService.handleTranscodingComplete(videoId, false);
+      }
+
+      reply.code(200).send({ success: true });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Webhook processing failed';
+      reply.code(500).send({
+        success: false,
+        error: message,
+      });
+    }
+  }
+
+  /**
+   * GET /api/videos/:id/transcoding-status
+   * Get transcoding status
+   */
+  async getTranscodingStatus(
+    request: FastifyRequest<{ Params: VideoIdParams; Querystring: { jobId: string } }>,
+    reply: FastifyReply
+  ): Promise<void> {
+    try {
+      const { jobId } = request.query;
+
+      if (!jobId) {
+        return reply.code(400).send({
+          success: false,
+          error: 'Job ID required',
+        });
+      }
+
+      const status = await this.videoService.getTranscodingStatus(jobId);
+
+      reply.send({
+        success: true,
+        data: { status },
+      });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to get transcoding status';
+      reply.code(400).send({
+        success: false,
+        error: message,
+      });
+    }
+  }
 }
