@@ -61,12 +61,23 @@ import {
 import { PlaylistRepository } from '@/modules/playlist/infrastructure/playlist-repository';
 import { PlaylistVideoRepository } from '@/modules/playlist/infrastructure/playlist-video-repository';
 
+// Repositories - Social
+import {
+  IFollowRepository,
+  INotificationRepository,
+  IUserStatsRepository,
+} from '@/modules/social/infrastructure/interfaces';
+import { FollowRepository } from '@/modules/social/infrastructure/follow-repository';
+import { NotificationRepository } from '@/modules/social/infrastructure/notification-repository';
+import { UserStatsRepository } from '@/modules/social/infrastructure/user-stats-repository';
+
 // Services
 import { AuthService } from '@/application/services/auth-service';
 import { VideoService } from '@/application/services/video-service';
 import { SubscriptionService } from '@/application/services/subscription-service';
 import { MonetizationService } from '@/application/services/monetization-service';
 import { PlaylistService } from '@/application/services/playlist-service';
+import { SocialService } from '@/application/services/social-service';
 
 // Controllers
 import { AuthController } from '@/interface/http/controllers/auth-controller';
@@ -74,6 +85,7 @@ import { VideoController } from '@/interface/http/controllers/video-controller';
 import { SubscriptionController } from '@/interface/http/controllers/subscription-controller';
 import { MonetizationController } from '@/interface/http/controllers/monetization-controller';
 import { PlaylistController } from '@/interface/http/controllers/playlist-controller';
+import { SocialController } from '@/interface/http/controllers/social-controller';
 
 /**
  * Create and configure the DI container.
@@ -110,12 +122,18 @@ export function createContainer(): Container {
   container.bind<IPlaylistRepository>(TYPES.PlaylistRepository).to(PlaylistRepository);
   container.bind<IPlaylistVideoRepository>(TYPES.PlaylistVideoRepository).to(PlaylistVideoRepository);
 
+  // Bind Repositories - Social
+  container.bind<IFollowRepository>(TYPES.FollowRepository).to(FollowRepository);
+  container.bind<INotificationRepository>(TYPES.NotificationRepository).to(NotificationRepository);
+  container.bind<IUserStatsRepository>(TYPES.UserStatsRepository).to(UserStatsRepository);
+
   // Bind Services
   container.bind<AuthService>(TYPES.AuthService).to(AuthService);
   container.bind<VideoService>(TYPES.VideoService).to(VideoService);
   container.bind<SubscriptionService>(TYPES.SubscriptionService).to(SubscriptionService);
   container.bind<MonetizationService>(TYPES.MonetizationService).to(MonetizationService);
   container.bind<PlaylistService>(TYPES.PlaylistService).to(PlaylistService);
+  container.bind<SocialService>(TYPES.SocialService).to(SocialService);
 
   // Bind Controllers
   container.bind<AuthController>(TYPES.AuthController).to(AuthController);
@@ -123,6 +141,7 @@ export function createContainer(): Container {
   container.bind<SubscriptionController>(TYPES.SubscriptionController).to(SubscriptionController);
   container.bind<MonetizationController>(TYPES.MonetizationController).to(MonetizationController);
   container.bind<PlaylistController>(TYPES.PlaylistController).to(PlaylistController);
+  container.bind<SocialController>(TYPES.SocialController).to(SocialController);
 
   return container;
 }

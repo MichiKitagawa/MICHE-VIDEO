@@ -31,12 +31,18 @@ export const TYPES = {
   PlaylistRepository: Symbol.for('PlaylistRepository'),
   PlaylistVideoRepository: Symbol.for('PlaylistVideoRepository'),
 
+  // Repositories - Social
+  FollowRepository: Symbol.for('FollowRepository'),
+  NotificationRepository: Symbol.for('NotificationRepository'),
+  UserStatsRepository: Symbol.for('UserStatsRepository'),
+
   // Services
   AuthService: Symbol.for('AuthService'),
   VideoService: Symbol.for('VideoService'),
   SubscriptionService: Symbol.for('SubscriptionService'),
   MonetizationService: Symbol.for('MonetizationService'),
   PlaylistService: Symbol.for('PlaylistService'),
+  SocialService: Symbol.for('SocialService'),
   EmailService: Symbol.for('EmailService'),
 
   // Controllers
@@ -45,6 +51,7 @@ export const TYPES = {
   SubscriptionController: Symbol.for('SubscriptionController'),
   MonetizationController: Symbol.for('MonetizationController'),
   PlaylistController: Symbol.for('PlaylistController'),
+  SocialController: Symbol.for('SocialController'),
 
   // Infrastructure
   PrismaClient: Symbol.for('PrismaClient'),
