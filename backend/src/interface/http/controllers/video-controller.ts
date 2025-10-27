@@ -624,4 +624,194 @@ export class VideoController {
       });
     }
   }
+
+  /**
+   * POST /api/videos/:id/progress
+   * Update watch progress
+   */
+  async updateProgress(
+    request: FastifyRequest<{ Params: VideoIdParams; Body: { progressSeconds: number; durationSeconds?: number } }>,
+    reply: FastifyReply
+  ): Promise<void> {
+    try {
+      // Extract userId from JWT
+      const authHeader = request.headers.authorization;
+      if (!authHeader) {
+        return reply.code(401).send({
+          success: false,
+          error: 'Authorization header required',
+        });
+      }
+
+      const token = authHeader.replace('Bearer ', '');
+      const decoded = verifyAccessToken(token);
+      const userId = decoded.sub;
+
+      const result = await this.videoService.updateProgress({
+        userId,
+        videoId: request.params.id,
+        progressSeconds: request.body.progressSeconds,
+        durationSeconds: request.body.durationSeconds,
+      });
+
+      reply.send({
+        success: true,
+        data: result,
+      });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to update progress';
+      reply.code(400).send({
+        success: false,
+        error: message,
+      });
+    }
+  }
+
+  /**
+   * GET /api/videos/:id/progress
+   * Get watch progress
+   */
+  async getProgress(
+    request: FastifyRequest<{ Params: VideoIdParams }>,
+    reply: FastifyReply
+  ): Promise<void> {
+    try {
+      // Extract userId from JWT
+      const authHeader = request.headers.authorization;
+      if (!authHeader) {
+        return reply.code(401).send({
+          success: false,
+          error: 'Authorization header required',
+        });
+      }
+
+      const token = authHeader.replace('Bearer ', '');
+      const decoded = verifyAccessToken(token);
+      const userId = decoded.sub;
+
+      const result = await this.videoService.getProgress(userId, request.params.id);
+
+      reply.send({
+        success: true,
+        data: result,
+      });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to get progress';
+      reply.code(400).send({
+        success: false,
+        error: message,
+      });
+    }
+  }
+
+  /**
+   * GET /api/watch-history
+   * Get user's watch history
+   */
+  async getWatchHistory(
+    request: FastifyRequest<{ Querystring: { limit?: number; offset?: number } }>,
+    reply: FastifyReply
+  ): Promise<void> {
+    try {
+      // Extract userId from JWT
+      const authHeader = request.headers.authorization;
+      if (!authHeader) {
+        return reply.code(401).send({
+          success: false,
+          error: 'Authorization header required',
+        });
+      }
+
+      const token = authHeader.replace('Bearer ', '');
+      const decoded = verifyAccessToken(token);
+      const userId = decoded.sub;
+
+      const limit = request.query.limit ? Number(request.query.limit) : 20;
+      const offset = request.query.offset ? Number(request.query.offset) : 0;
+
+      const result = await this.videoService.getWatchHistory(userId, limit, offset);
+
+      reply.send({
+        success: true,
+        data: result,
+      });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to get watch history';
+      reply.code(400).send({
+        success: false,
+        error: message,
+      });
+    }
+  }
+
+  /**
+   * DELETE /api/watch-history/:id
+   * Delete specific watch history entry
+   */
+  async deleteWatchHistoryEntry(
+    request: FastifyRequest<{ Params: VideoIdParams }>,
+    reply: FastifyReply
+  ): Promise<void> {
+    try {
+      // Extract userId from JWT
+      const authHeader = request.headers.authorization;
+      if (!authHeader) {
+        return reply.code(401).send({
+          success: false,
+          error: 'Authorization header required',
+        });
+      }
+
+      const token = authHeader.replace('Bearer ', '');
+      const decoded = verifyAccessToken(token);
+      const userId = decoded.sub;
+
+      await this.videoService.deleteWatchHistoryEntry(userId, request.params.id);
+
+      reply.code(204).send();
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to delete watch history entry';
+      reply.code(400).send({
+        success: false,
+        error: message,
+      });
+    }
+  }
+
+  /**
+   * DELETE /api/watch-history
+   * Clear all watch history
+   */
+  async clearWatchHistory(
+    request: FastifyRequest,
+    reply: FastifyReply
+  ): Promise<void> {
+    try {
+      // Extract userId from JWT
+      const authHeader = request.headers.authorization;
+      if (!authHeader) {
+        return reply.code(401).send({
+          success: false,
+          error: 'Authorization header required',
+        });
+      }
+
+      const token = authHeader.replace('Bearer ', '');
+      const decoded = verifyAccessToken(token);
+      const userId = decoded.sub;
+
+      const result = await this.videoService.clearWatchHistory(userId);
+
+      reply.send({
+        success: true,
+        data: result,
+      });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to clear watch history';
+      reply.code(400).send({
+        success: false,
+        error: message,
+      });
+    }
+  }
 }

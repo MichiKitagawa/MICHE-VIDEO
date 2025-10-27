@@ -13,9 +13,11 @@ import {
   IVideoLikeRepository,
   IVideoCommentRepository,
   IVideoViewRepository,
+  IWatchHistoryRepository,
   CreateVideoDto,
   UpdateVideoDto,
   VideoListFilters,
+  UpdateProgressDto,
 } from '@/modules/video/infrastructure/interfaces';
 import { generateUploadUrl, generateVideoKey, generateThumbnailKey } from '@/shared/infrastructure/s3-client';
 import {
@@ -67,7 +69,8 @@ export class VideoService {
     @inject(TYPES.VideoRepository) private videoRepo: IVideoRepository,
     @inject(TYPES.VideoLikeRepository) private likeRepo: IVideoLikeRepository,
     @inject(TYPES.VideoCommentRepository) private commentRepo: IVideoCommentRepository,
-    @inject(TYPES.VideoViewRepository) private viewRepo: IVideoViewRepository
+    @inject(TYPES.VideoViewRepository) private viewRepo: IVideoViewRepository,
+    @inject(TYPES.WatchHistoryRepository) private watchHistoryRepo: IWatchHistoryRepository
   ) {}
 
   /**
@@ -340,5 +343,47 @@ export class VideoService {
    */
   async getTranscodingStatus(jobId: string): Promise<string> {
     return getJobStatus(jobId);
+  }
+
+  /**
+   * Update watch progress
+   */
+  async updateProgress(data: UpdateProgressDto): Promise<any> {
+    // Verify video exists
+    const video = await this.videoRepo.findById(data.videoId);
+    if (!video) {
+      throw new Error('Video not found');
+    }
+
+    return this.watchHistoryRepo.upsertProgress(data);
+  }
+
+  /**
+   * Get watch progress for specific video
+   */
+  async getProgress(userId: string, videoId: string): Promise<any> {
+    return this.watchHistoryRepo.findByUserAndVideo(userId, videoId);
+  }
+
+  /**
+   * Get user's watch history
+   */
+  async getWatchHistory(userId: string, limit?: number, offset?: number): Promise<any[]> {
+    return this.watchHistoryRepo.findByUserId(userId, limit, offset);
+  }
+
+  /**
+   * Delete specific watch history entry
+   */
+  async deleteWatchHistoryEntry(userId: string, videoId: string): Promise<void> {
+    await this.watchHistoryRepo.deleteByUserAndVideo(userId, videoId);
+  }
+
+  /**
+   * Clear all watch history for user
+   */
+  async clearWatchHistory(userId: string): Promise<{ deletedCount: number }> {
+    const deletedCount = await this.watchHistoryRepo.deleteAllByUser(userId);
+    return { deletedCount };
   }
 }

@@ -16,6 +16,7 @@ export const TYPES = {
   VideoLikeRepository: Symbol.for('VideoLikeRepository'),
   VideoCommentRepository: Symbol.for('VideoCommentRepository'),
   VideoViewRepository: Symbol.for('VideoViewRepository'),
+  WatchHistoryRepository: Symbol.for('WatchHistoryRepository'),
 
   // Services
   AuthService: Symbol.for('AuthService'),

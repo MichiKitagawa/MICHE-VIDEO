@@ -85,4 +85,26 @@ export async function registerVideoRoutes(
   fastify.post('/api/webhooks/mediaconvert', async (request: any, reply: any) => {
     return videoController.handleMediaConvertWebhook(request, reply);
   });
+
+  // Watch progress
+  fastify.post('/api/videos/:id/progress', async (request: any, reply: any) => {
+    return videoController.updateProgress(request, reply);
+  });
+
+  fastify.get('/api/videos/:id/progress', async (request: any, reply: any) => {
+    return videoController.getProgress(request, reply);
+  });
+
+  // Watch history
+  fastify.get('/api/watch-history', async (request: any, reply: any) => {
+    return videoController.getWatchHistory(request, reply);
+  });
+
+  fastify.delete('/api/watch-history/:id', async (request: any, reply: any) => {
+    return videoController.deleteWatchHistoryEntry(request, reply);
+  });
+
+  fastify.delete('/api/watch-history', async (request: any, reply: any) => {
+    return videoController.clearWatchHistory(request, reply);
+  });
 }

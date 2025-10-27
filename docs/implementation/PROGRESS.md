@@ -1,8 +1,8 @@
 # Backend Implementation Progress
 
-**最終更新**: 2025-10-27 19:00
+**最終更新**: 2025-10-27 19:30
 **Phase**: Phase 2 - Content Delivery（コンテンツ配信）
-**全体進捗**: 35% (Phase 1: 90%, Phase 2: 45%)
+**全体進捗**: 38% (Phase 1: 90%, Phase 2: 60%)
 
 ---
 
@@ -169,7 +169,28 @@
 - [x] Video Routes更新
 - [x] サーバー起動時のAWSクライアント初期化
 
-### 8. 進行中
+### 8. 視聴進捗・履歴管理 ✅
+- [x] WatchHistory Repository実装
+  - [x] `upsertProgress()` - 進捗更新/作成
+  - [x] `findByUserAndVideo()` - 特定動画の進捗取得
+  - [x] `findByUserId()` - ユーザーの視聴履歴取得
+  - [x] `deleteByUserAndVideo()` - 履歴削除
+  - [x] `deleteAllByUser()` - 全履歴クリア
+- [x] Video Service - 視聴進捗機能
+  - [x] `updateProgress()` - 進捗保存
+  - [x] `getProgress()` - 進捗取得
+  - [x] `getWatchHistory()` - 履歴一覧
+  - [x] `deleteWatchHistoryEntry()` - 履歴削除
+  - [x] `clearWatchHistory()` - 全削除
+- [x] Video Controller - 視聴進捗エンドポイント
+  - [x] `POST /api/videos/:id/progress` - 進捗更新
+  - [x] `GET /api/videos/:id/progress` - 進捗取得
+  - [x] `GET /api/watch-history` - 履歴一覧
+  - [x] `DELETE /api/watch-history/:id` - 履歴削除
+  - [x] `DELETE /api/watch-history` - 全削除
+- [x] DI Container更新
+
+### 9. 進行中
 - [ ] 統合テスト実装
 - [ ] CloudFront CDN設定
 
