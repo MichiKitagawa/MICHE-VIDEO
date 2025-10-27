@@ -1,8 +1,8 @@
 # Backend Implementation Progress
 
-**最終更新**: 2025-10-27 17:00
-**Phase**: Phase 1 - Foundation（基盤構築）
-**全体進捗**: 28% (Phase 1: 90%)
+**最終更新**: 2025-10-27 18:30
+**Phase**: Phase 2 - Content Delivery（コンテンツ配信）
+**全体進捗**: 32% (Phase 1: 90%, Phase 2: 30%)
 
 ---
 
@@ -118,12 +118,44 @@
 ### 3. Video Infrastructure層 ✅
 - [x] Video Repository interfaces
 - [x] Video Repository実装
+- [x] VideoLike Repository実装
+- [x] VideoComment Repository実装
+- [x] VideoView Repository実装
 
-### 4. 進行中
-- [ ] Video Service (Application層)
-- [ ] Video Controller (Interface層)
+### 4. Video Application層 ✅
+- [x] Video Service (Application層)
+  - [x] 動画アップロード開始（Presigned URL生成）
+  - [x] 動画CRUD操作
+  - [x] いいね/いいね解除
+  - [x] コメント管理（追加、取得、更新、削除）
+  - [x] 視聴記録
+  - [x] 動画公開
+
+### 5. Video Interface層 ✅
+- [x] Video Controller (Interface層)
+- [x] Video Routes定義
+  - [x] `POST /api/videos/upload` - アップロード開始
+  - [x] `GET /api/videos` - 動画一覧
+  - [x] `GET /api/videos/:id` - 動画詳細
+  - [x] `PATCH /api/videos/:id` - 動画更新
+  - [x] `DELETE /api/videos/:id` - 動画削除
+  - [x] `POST /api/videos/:id/like` - いいね
+  - [x] `POST /api/videos/:id/comments` - コメント追加
+  - [x] `GET /api/videos/:id/comments` - コメント取得
+  - [x] `PATCH /api/videos/:id/comments/:commentId` - コメント更新
+  - [x] `DELETE /api/videos/:id/comments/:commentId` - コメント削除
+  - [x] `POST /api/videos/:id/view` - 視聴記録
+  - [x] `POST /api/videos/:id/publish` - 動画公開
+
+### 6. DI Container更新 ✅
+- [x] Video repositories登録
+- [x] Video Service登録
+- [x] Video Controller登録
+- [x] TYPES定義更新
+
+### 7. 進行中
 - [ ] MediaConvert統合
-- [ ] 基本ソーシャル機能（いいね、コメント）
+- [ ] 統合テスト実装
 
 ## ⏳ 未着手 (Pending)
 

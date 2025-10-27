@@ -11,7 +11,9 @@ import rateLimit from '@fastify/rate-limit';
 import { Container } from 'inversify';
 import { TYPES } from '@/shared/types';
 import { AuthController } from '@/interface/http/controllers/auth-controller';
+import { VideoController } from '@/interface/http/controllers/video-controller';
 import { registerAuthRoutes } from '@/interface/http/routes/auth-routes';
+import { registerVideoRoutes } from '@/interface/http/routes/video-routes';
 
 export async function createApp(container: Container): Promise<FastifyInstance> {
   const fastify = Fastify({
@@ -48,6 +50,9 @@ export async function createApp(container: Container): Promise<FastifyInstance> 
   // Register routes
   const authController = container.get<AuthController>(TYPES.AuthController);
   await registerAuthRoutes(fastify, authController);
+
+  const videoController = container.get<VideoController>(TYPES.VideoController);
+  await registerVideoRoutes(fastify, videoController);
 
   return fastify;
 }
