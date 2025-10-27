@@ -31,6 +31,11 @@ import {
   errorHandler,
   setupUncaughtExceptionHandler,
 } from '@/shared/infrastructure/error-handler';
+import {
+  corsConfig,
+  helmetConfig,
+  rateLimitConfig,
+} from '@/shared/middleware/security-config';
 
 export async function createApp(container: Container): Promise<FastifyInstance> {
   // Setup uncaught exception handlers
@@ -46,22 +51,14 @@ export async function createApp(container: Container): Promise<FastifyInstance> 
     },
   });
 
-  // Register CORS
-  await fastify.register(cors, {
-    origin: process.env.CORS_ORIGIN || '*',
-    credentials: true,
-  });
+  // Register CORS with production-ready configuration
+  await fastify.register(cors, corsConfig);
 
   // Register Helmet for security headers
-  await fastify.register(helmet, {
-    contentSecurityPolicy: false, // Disable for API
-  });
+  await fastify.register(helmet, helmetConfig);
 
-  // Register Rate Limiting
-  await fastify.register(rateLimit, {
-    max: parseInt(process.env.RATE_LIMIT_MAX || '100'),
-    timeWindow: parseInt(process.env.RATE_LIMIT_WINDOW_MS || '60000'),
-  });
+  // Register Rate Limiting with enhanced configuration
+  await fastify.register(rateLimit, rateLimitConfig);
 
   // Add performance monitoring hook to all requests
   fastify.addHook('onRequest', performanceMonitoringHook);
