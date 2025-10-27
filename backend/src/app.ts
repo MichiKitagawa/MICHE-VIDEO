@@ -16,6 +16,7 @@ import { registerAuthRoutes } from '@/interface/http/routes/auth-routes';
 import { registerVideoRoutes } from '@/interface/http/routes/video-routes';
 import { subscriptionRoutes } from '@/interface/http/routes/subscription-routes';
 import { monetizationRoutes } from '@/interface/http/routes/monetization-routes';
+import { playlistRoutes } from '@/interface/http/routes/playlist-routes';
 
 export async function createApp(container: Container): Promise<FastifyInstance> {
   const fastify = Fastify({
@@ -58,6 +59,7 @@ export async function createApp(container: Container): Promise<FastifyInstance> 
 
   await subscriptionRoutes(fastify, container);
   await monetizationRoutes(fastify, container);
+  await playlistRoutes(fastify, container);
 
   return fastify;
 }

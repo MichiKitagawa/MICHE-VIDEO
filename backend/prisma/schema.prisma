@@ -45,6 +45,7 @@ model User {
   withdrawalMethods   WithdrawalMethod[]
   withdrawalRequests  WithdrawalRequest[]
   taxInfo             TaxInfo?
+  playlists           Playlist[]
 
   @@index([email])
   @@index([createdAt])
@@ -242,13 +243,14 @@ model Video {
   updatedAt       DateTime  @updatedAt @map("updated_at") @db.Timestamptz
 
   // Relations
-  user         User           @relation(fields: [userId], references: [id], onDelete: Cascade)
-  category     VideoCategory? @relation(fields: [categoryId], references: [id])
-  tags         VideoTag[]
-  likes        VideoLike[]
-  comments     VideoComment[]
-  views        VideoView[]
-  watchHistory WatchHistory[]
+  user           User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  category       VideoCategory?  @relation(fields: [categoryId], references: [id])
+  tags           VideoTag[]
+  likes          VideoLike[]
+  comments       VideoComment[]
+  views          VideoView[]
+  watchHistory   WatchHistory[]
+  playlistVideos PlaylistVideo[]
 
   @@index([userId])
   @@index([categoryId])
@@ -478,4 +480,47 @@ model TaxInfo {
 
   @@index([userId])
   @@map("tax_info")
+}
+
+// ==================
+// Playlist Models
+// ==================
+
+model Playlist {
+  id           String   @id @default(uuid()) @db.Uuid
+  userId       String   @map("user_id") @db.Uuid
+  name         String   @db.VarChar(100)
+  description  String?  @db.Text
+  isPublic     Boolean  @default(true) @map("is_public")
+  videoCount   Int      @default(0) @map("video_count")
+  thumbnailUrl String?  @map("thumbnail_url") @db.VarChar(500)
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt    DateTime @updatedAt @map("updated_at") @db.Timestamptz
+
+  // Relations
+  user           User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  playlistVideos PlaylistVideo[]
+
+  @@index([userId])
+  @@index([isPublic])
+  @@index([createdAt(sort: Desc)])
+  @@map("playlists")
+}
+
+model PlaylistVideo {
+  id         String   @id @default(uuid()) @db.Uuid
+  playlistId String   @map("playlist_id") @db.Uuid
+  videoId    String   @map("video_id") @db.Uuid
+  position   Int      // Sort order (0-indexed)
+  addedAt    DateTime @default(now()) @map("added_at") @db.Timestamptz
+
+  // Relations
+  playlist Playlist @relation(fields: [playlistId], references: [id], onDelete: Cascade)
+  video    Video    @relation(fields: [videoId], references: [id], onDelete: Cascade)
+
+  @@unique([playlistId, videoId])
+  @@index([playlistId])
+  @@index([videoId])
+  @@index([playlistId, position])
+  @@map("playlist_videos")
 }

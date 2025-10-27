@@ -1,8 +1,8 @@
 # Backend Implementation Progress
 
-**最終更新**: 2025-10-27 23:00
+**最終更新**: 2025-10-27 23:30
 **Phase**: Phase 3 - Monetization（収益化）
-**全体進捗**: 55% (Phase 1: 90%, Phase 2: 70%, Phase 3: 65%)
+**全体進捗**: 60% (Phase 1: 90%, Phase 2: 70%, Phase 3: 85%)
 
 ---
 
@@ -215,7 +215,7 @@
 
 ---
 
-## 🚧 Phase 3: Monetization (収益化) - 65%完了
+## 🚧 Phase 3: Monetization (収益化) - 85%完了
 
 ### 1. Stripe統合 ✅
 - [x] Stripe SDK インストール
@@ -332,6 +332,63 @@
   - [x] MonetizationController登録
 - [x] プラットフォーム手数料 30%設定
 - [x] 出金可能期間 14日設定
+
+**TypeScriptビルド**: ✅ 成功
+
+### 8. プレイリスト機能 ✅
+- [x] Prismaスキーマ拡張
+  - [x] Playlist model - プレイリスト管理
+  - [x] PlaylistVideo model - プレイリスト-動画中間テーブル
+  - [x] User/Video relationshipsを更新
+- [x] Playlist Infrastructure層
+  - [x] PlaylistRepository実装
+    - [x] `create()` - プレイリスト作成
+    - [x] `findById()` - プレイリスト詳細（動画含む）
+    - [x] `findByUserId()` - ユーザーのプレイリスト一覧
+    - [x] `update()` - プレイリスト更新
+    - [x] `delete()` - プレイリスト削除
+    - [x] `incrementVideoCount()`/`decrementVideoCount()` - カウント管理
+    - [x] `updateThumbnail()` - サムネイル更新
+  - [x] PlaylistVideoRepository実装
+    - [x] `addVideo()` - 動画追加
+    - [x] `findByPlaylistId()` - プレイリストの動画一覧
+    - [x] `findByVideoId()` - 動画を含むプレイリスト
+    - [x] `removeVideo()` - 動画削除（位置自動調整）
+    - [x] `reorderVideos()` - 並び替え
+    - [x] `getVideoCount()` - 動画数取得
+    - [x] `checkVideoExists()` - 重複チェック
+- [x] Playlist Application層
+  - [x] PlaylistService実装
+    - [x] `createPlaylist()` - プレイリスト作成（バリデーション）
+    - [x] `getUserPlaylists()` - ユーザーのプレイリスト取得
+    - [x] `getPlaylistById()` - 詳細取得（プライバシーチェック）
+    - [x] `updatePlaylist()` - 更新（権限チェック）
+    - [x] `deletePlaylist()` - 削除（権限チェック）
+    - [x] `addVideoToPlaylist()` - 動画追加（重複・上限チェック）
+    - [x] `removeVideoFromPlaylist()` - 動画削除（サムネイル更新）
+    - [x] `reorderVideos()` - 並び替え（権限チェック）
+    - [x] `getPlaylistsForVideo()` - 動画を含むプレイリスト
+- [x] Playlist Interface層
+  - [x] PlaylistController実装
+    - [x] `POST /api/playlists/create` - プレイリスト作成
+    - [x] `GET /api/playlists/my-playlists` - 自分のプレイリスト一覧
+    - [x] `GET /api/playlists/:id` - プレイリスト詳細
+    - [x] `PATCH /api/playlists/:id` - プレイリスト更新
+    - [x] `DELETE /api/playlists/:id` - プレイリスト削除
+    - [x] `POST /api/playlists/:id/videos/add` - 動画追加
+    - [x] `DELETE /api/playlists/:id/videos/:videoId` - 動画削除
+    - [x] `PATCH /api/playlists/:id/videos/reorder` - 並び替え
+  - [x] Playlist Routes定義
+- [x] DI Container更新
+  - [x] Playlist/PlaylistVideo repositories登録
+  - [x] PlaylistService登録
+  - [x] PlaylistController登録
+- [x] ビジネスルール
+  - [x] プレイリスト上限: 500動画
+  - [x] 名前最大長: 100文字
+  - [x] 公開/非公開設定
+  - [x] 動画削除時の位置自動調整
+  - [x] 最初の動画のサムネイルを自動設定
 
 **TypeScriptビルド**: ✅ 成功
 
