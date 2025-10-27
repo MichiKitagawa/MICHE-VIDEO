@@ -62,6 +62,7 @@ export const TYPES = {
   // Infrastructure
   PrismaClient: Symbol.for('PrismaClient'),
   RedisClient: Symbol.for('RedisClient'),
+  CacheService: Symbol.for('CacheService'),
 
   // External Services
   StripeClient: Symbol.for('StripeClient'),

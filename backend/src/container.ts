@@ -96,6 +96,7 @@ import { MonetizationController } from '@/interface/http/controllers/monetizatio
 import { PlaylistController } from '@/interface/http/controllers/playlist-controller';
 import { SocialController } from '@/interface/http/controllers/social-controller';
 import { ChannelController } from '@/interface/http/controllers/channel-controller';
+import { CacheService } from '@/shared/infrastructure/cache-service';
 
 /**
  * Create and configure the DI container.
@@ -105,6 +106,9 @@ export function createContainer(): Container {
 
   // Bind Prisma Client (singleton)
   container.bind<PrismaClient>(TYPES.PrismaClient).toConstantValue(new PrismaClient());
+
+  // Bind Cache Service (singleton)
+  container.bind<CacheService>(TYPES.CacheService).to(CacheService).inSingletonScope();
 
   // Bind Repositories - Auth
   container.bind<IUserRepository>(TYPES.UserRepository).to(UserRepository);
