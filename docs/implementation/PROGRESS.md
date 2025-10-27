@@ -103,14 +103,35 @@
 
 ---
 
+## 🚧 Phase 2 開始: Content Delivery (コンテンツ配信)
+
+### 1. データベース拡張 ✅
+- [x] Prismaスキーマ拡張（Video models追加）
+- [x] VideoCategory, Video, VideoTag, VideoLike, VideoComment, VideoView
+
+### 2. AWS S3統合 ✅
+- [x] S3 Client wrapper作成
+- [x] Presigned URL生成機能
+- [x] Upload/Download URL生成
+- [x] S3キー生成ロジック
+
+### 3. Video Infrastructure層 ✅
+- [x] Video Repository interfaces
+- [x] Video Repository実装
+
+### 4. 進行中
+- [ ] Video Service (Application層)
+- [ ] Video Controller (Interface層)
+- [ ] MediaConvert統合
+- [ ] 基本ソーシャル機能（いいね、コメント）
+
 ## ⏳ 未着手 (Pending)
 
-### Phase 2: Content Delivery (コンテンツ配信)
-- [ ] AWS S3統合
-- [ ] MediaConvert統合
+### Phase 2 残タスク
 - [ ] CloudFront CDN設定
-- [ ] 動画CRUD
-- [ ] 基本ソーシャル機能
+- [ ] HLS ストリーミング
+- [ ] 視聴履歴・進捗管理
+- [ ] 基本検索機能
 
 ### Phase 3: Monetization (収益化)
 - [ ] Stripe統合

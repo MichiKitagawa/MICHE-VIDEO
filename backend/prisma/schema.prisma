@@ -189,3 +189,164 @@ model PaymentMethod {
   @@index([externalPaymentMethodId])
   @@map("payment_methods")
 }
+
+// =====================================
+// 3. Video Management
+// =====================================
+
+model VideoCategory {
+  id          String   @id @db.VarChar(50)
+  name        String   @db.VarChar(100)
+  nameEn      String   @map("name_en") @db.VarChar(100)
+  description String?  @db.Text
+  isActive    Boolean  @default(true) @map("is_active")
+  sortOrder   Int      @default(0) @map("sort_order")
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz
+
+  // Relations
+  videos Video[]
+
+  @@map("video_categories")
+}
+
+model Video {
+  id              String    @id @default(uuid()) @db.Uuid
+  userId          String    @map("user_id") @db.Uuid
+  title           String    @db.VarChar(200)
+  description     String?   @db.Text
+  categoryId      String?   @map("category_id") @db.VarChar(50)
+  thumbnailUrl    String?   @map("thumbnail_url") @db.VarChar(500)
+  duration        Int       // seconds
+  privacy         String    @db.VarChar(20) // 'public', 'unlisted', 'private'
+  isAdult         Boolean   @default(false) @map("is_adult")
+  viewCount       Int       @default(0) @map("view_count")
+  likeCount       Int       @default(0) @map("like_count")
+  commentCount    Int       @default(0) @map("comment_count")
+  status          String    @db.VarChar(20) // 'processing', 'ready', 'failed'
+  s3Key           String?   @map("s3_key") @db.VarChar(500)
+  hlsUrl          String?   @map("hls_url") @db.VarChar(500)
+  publishedAt     DateTime? @map("published_at") @db.Timestamptz
+  createdAt       DateTime  @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt       DateTime  @updatedAt @map("updated_at") @db.Timestamptz
+
+  // Relations
+  user     User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  category VideoCategory? @relation(fields: [categoryId], references: [id])
+  tags     VideoTag[]
+  likes    VideoLike[]
+  comments VideoComment[]
+  views    VideoView[]
+
+  @@index([userId])
+  @@index([categoryId])
+  @@index([status])
+  @@index([privacy])
+  @@index([isAdult])
+  @@index([publishedAt])
+  @@index([createdAt])
+  @@map("videos")
+}
+
+model VideoTag {
+  id        String   @id @default(uuid()) @db.Uuid
+  videoId   String   @map("video_id") @db.Uuid
+  tag       String   @db.VarChar(50)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  // Relations
+  video Video @relation(fields: [videoId], references: [id], onDelete: Cascade)
+
+  @@unique([videoId, tag])
+  @@index([tag])
+  @@map("video_tags")
+}
+
+model VideoLike {
+  id        String   @id @default(uuid()) @db.Uuid
+  videoId   String   @map("video_id") @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  // Relations
+  video Video @relation(fields: [videoId], references: [id], onDelete: Cascade)
+  user  User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([videoId, userId])
+  @@index([videoId])
+  @@index([userId])
+  @@map("video_likes")
+}
+
+model VideoComment {
+  id         String    @id @default(uuid()) @db.Uuid
+  videoId    String    @map("video_id") @db.Uuid
+  userId     String    @map("user_id") @db.Uuid
+  parentId   String?   @map("parent_id") @db.Uuid
+  content    String    @db.Text
+  likeCount  Int       @default(0) @map("like_count")
+  deletedAt  DateTime? @map("deleted_at") @db.Timestamptz
+  createdAt  DateTime  @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt  DateTime  @updatedAt @map("updated_at") @db.Timestamptz
+
+  // Relations
+  video   Video          @relation(fields: [videoId], references: [id], onDelete: Cascade)
+  user    User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  parent  VideoComment?  @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
+  replies VideoComment[] @relation("CommentReplies")
+
+  @@index([videoId])
+  @@index([userId])
+  @@index([parentId])
+  @@index([createdAt])
+  @@map("video_comments")
+}
+
+model VideoView {
+  id         String   @id @default(uuid()) @db.Uuid
+  videoId    String   @map("video_id") @db.Uuid
+  userId     String?  @map("user_id") @db.Uuid
+  ipAddress  String?  @map("ip_address") @db.VarChar(45)
+  duration   Int      // seconds watched
+  completedAt DateTime? @map("completed_at") @db.Timestamptz
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  // Relations
+  video Video  @relation(fields: [videoId], references: [id], onDelete: Cascade)
+  user  User?   @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([videoId])
+  @@index([userId])
+  @@index([createdAt])
+  @@map("video_views")
+}
+
+model User {
+  id                String    @id @default(uuid()) @db.Uuid
+  email             String    @unique @db.VarChar(255)
+  passwordHash      String    @map("password_hash") @db.VarChar(255)
+  name              String    @db.VarChar(100)
+  displayName       String?   @map("display_name") @db.VarChar(100)
+  bio               String?   @db.Text
+  avatarUrl         String?   @map("avatar_url") @db.VarChar(500)
+  isEmailVerified   Boolean   @default(false) @map("is_email_verified")
+  isCreator         Boolean   @default(false) @map("is_creator")
+  createdAt         DateTime  @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt         DateTime  @updatedAt @map("updated_at") @db.Timestamptz
+  lastLoginAt       DateTime? @map("last_login_at") @db.Timestamptz
+
+  // Relations
+  sessions            UserSession[]
+  emailVerifications  EmailVerification[]
+  passwordResets      PasswordReset[]
+  subscriptions       UserSubscription[]
+  paymentMethods      PaymentMethod[]
+  videos              Video[]
+  videoLikes          VideoLike[]
+  videoComments       VideoComment[]
+  videoViews          VideoView[]
+
+  @@index([email])
+  @@index([createdAt])
+  @@map("users")
+}
