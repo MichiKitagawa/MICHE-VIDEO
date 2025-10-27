@@ -1,8 +1,8 @@
 # Backend Implementation Progress
 
-**最終更新**: 2025-10-28 02:00
+**最終更新**: 2025-10-28 03:00
 **Phase**: Phase 4 - Polish & Optimization（仕上げ・最適化）
-**全体進捗**: 84% (Phase 1: 90%, Phase 2: 80%, Phase 3: 85%, Phase 4: 80%)
+**全体進捗**: 87% (Phase 1: 90%, Phase 2: 80%, Phase 3: 85%, Phase 4: 90%)
 
 ---
 
@@ -404,7 +404,7 @@
 
 ---
 
-## 🚧 Phase 4: Polish & Optimization (仕上げ) - 80%完了
+## 🚧 Phase 4: Polish & Optimization (仕上げ) - 90%完了
 
 ### 1. ソーシャル機能 ✅
 - [x] Prismaスキーマ拡張
@@ -645,6 +645,75 @@
 
 **TypeScriptビルド**: ✅ 成功
 
+### 5. パフォーマンス監視・ロギングシステム ✅
+- [x] Winston Logger実装 (`src/shared/infrastructure/logger.ts`)
+  - [x] 構造化JSONロギング
+  - [x] 複数トランスポート (Console, File, Error file)
+  - [x] 日次ログローテーション (14日保持、エラーは30日)
+  - [x] 開発環境用カラーコンソール
+  - [x] コンテキストメタデータ (service, environment, timestamp)
+  - [x] ログレベル: error, warn, info, http, verbose, debug, silly
+- [x] パフォーマンスモニター実装 (`src/shared/infrastructure/performance-monitor.ts`)
+  - [x] リクエスト追跡 (総数、成功、失敗)
+  - [x] レスポンスタイム測定 (平均、最小、最大)
+  - [x] スロークエリ検出 (閾値1000ms)
+  - [x] エンドポイント別メトリクス
+  - [x] エラー率追跡
+  - [x] メモリ使用量監視 (heap, RSS, external)
+  - [x] 定期レポート (60分毎 in production)
+  - [x] メモリ監視 (30分毎 in production)
+  - [x] 高メモリ使用アラート (>80%)
+- [x] グローバルエラーハンドラー (`src/shared/infrastructure/error-handler.ts`)
+  - [x] 統一エラーレスポンス形式
+  - [x] 16種類のエラーコード定義
+  - [x] カスタムAppErrorクラス
+  - [x] ヘルパー関数 (throwNotFoundError, throwValidationError, etc.)
+  - [x] Uncaught exception処理
+  - [x] Unhandled promise rejection処理
+  - [x] 構造化エラーロギング
+  - [x] リクエストID追跡
+- [x] Fastify統合 (`src/app.ts`)
+  - [x] Winston logger統合
+  - [x] パフォーマンス監視フック (全リクエスト)
+  - [x] グローバルエラーハンドラー登録
+  - [x] リクエストID生成 (x-request-id)
+  - [x] 拡張ヘルスチェック (`/health` - メモリ情報含む)
+  - [x] メトリクスエンドポイント (`/metrics`)
+  - [x] 定期レポート自動起動 (production)
+- [x] サーバー起動最適化 (`src/server.ts`)
+  - [x] Redis初期化追加
+  - [x] 構造化ログ出力
+  - [x] Graceful shutdown (Redis切断含む)
+  - [x] 起動時詳細ログ
+- [x] ドキュメント作成
+  - [x] `docs/MONITORING-GUIDE.md` - 監視ガイド (20KB)
+    - [x] Winston logger使用例
+    - [x] パフォーマンスメトリクス説明
+    - [x] エラーハンドリング戦略
+    - [x] ヘルスチェック/メトリクスエンドポイント
+    - [x] 本番環境ベストプラクティス
+    - [x] 外部監視サービス統合 (Datadog, Sentry, New Relic)
+    - [x] デバッグ方法
+    - [x] トラブルシューティング
+
+**監視機能**:
+- リクエスト/レスポンス時間追跡
+- エンドポイント別パフォーマンス分析
+- スロークエリ自動検出・ログ
+- メモリ使用量監視・アラート
+- エラー率追跡
+- 定期パフォーマンスサマリー
+
+**ロギング機能**:
+- 構造化JSONログ (機械解析可能)
+- 日次ローテーション (自動圧縮)
+- レベル別フィルタリング
+- リクエストID追跡
+- ユーザーコンテキスト
+- スタックトレース保存
+
+**TypeScriptビルド**: ✅ 成功
+
 ---
 
 ## ⏳ 未着手 (Pending)
@@ -658,10 +727,11 @@
 ### Phase 4 残タスク
 - [x] パフォーマンス最適化 - DB indexes ✅
 - [x] パフォーマンス最適化 - Redis caching ✅
-- [ ] パフォーマンス最適化 - query tuning, CDN
-- [ ] セキュリティ強化（WAF, Rate limiting enhancement, CORS, SSL/TLS, security headers）
-- [ ] 監視・ロギング（CloudWatch, Winston, Sentry, performance monitoring）
-- [ ] ドキュメント整備（API specs, deploy guide, ops manual）
+- [x] 監視・ロギング - Winston, performance monitoring ✅
+- [ ] パフォーマンス最適化 - query tuning, CDN (非MVP)
+- [ ] セキュリティ強化 - WAF, Rate limiting enhancement (一部実装済み)
+- [ ] 監視統合 - CloudWatch, Sentry (本番環境デプロイ時)
+- [ ] ドキュメント整備 - API specs, deploy guide (一部完了)
 
 ### Phase 5: MVP Launch Preparation
 - [ ] 本番環境構築

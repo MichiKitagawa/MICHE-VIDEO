@@ -19,11 +19,30 @@ import { monetizationRoutes } from '@/interface/http/routes/monetization-routes'
 import { playlistRoutes } from '@/interface/http/routes/playlist-routes';
 import { socialRoutes } from '@/interface/http/routes/social-routes';
 import { channelRoutes } from '@/interface/http/routes/channel-routes';
+import logger from '@/shared/infrastructure/logger';
+import {
+  performanceMonitoringHook,
+  getPerformanceMetrics,
+  getMemoryUsage,
+  startPerformanceReporting,
+  startMemoryMonitoring,
+} from '@/shared/infrastructure/performance-monitor';
+import {
+  errorHandler,
+  setupUncaughtExceptionHandler,
+} from '@/shared/infrastructure/error-handler';
 
 export async function createApp(container: Container): Promise<FastifyInstance> {
+  // Setup uncaught exception handlers
+  setupUncaughtExceptionHandler();
+
   const fastify = Fastify({
-    logger: {
-      level: process.env.LOG_LEVEL || 'info',
+    logger: false, // Disable built-in logger, use Winston instead
+    requestIdHeader: 'x-request-id',
+    requestIdLogLabel: 'requestId',
+    genReqId: () => {
+      // Generate unique request ID
+      return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
     },
   });
 
@@ -44,11 +63,41 @@ export async function createApp(container: Container): Promise<FastifyInstance> 
     timeWindow: parseInt(process.env.RATE_LIMIT_WINDOW_MS || '60000'),
   });
 
+  // Add performance monitoring hook to all requests
+  fastify.addHook('onRequest', performanceMonitoringHook);
+
+  // Set global error handler
+  fastify.setErrorHandler(errorHandler);
+
+  // Log server startup
+  logger.info('Fastify application starting', {
+    environment: process.env.NODE_ENV || 'development',
+    logLevel: process.env.LOG_LEVEL || 'info',
+  });
+
   // Health check
   fastify.get('/health', async () => {
+    const memory = getMemoryUsage();
     return {
       status: 'ok',
       timestamp: new Date().toISOString(),
+      uptime: process.uptime(),
+      memory,
+    };
+  });
+
+  // Performance metrics endpoint
+  fastify.get('/metrics', async () => {
+    const metrics = getPerformanceMetrics();
+    const memory = getMemoryUsage();
+
+    return {
+      success: true,
+      data: {
+        ...metrics,
+        memory,
+        timestamp: new Date().toISOString(),
+      },
     };
   });
 
@@ -64,6 +113,15 @@ export async function createApp(container: Container): Promise<FastifyInstance> 
   await playlistRoutes(fastify, container);
   await socialRoutes(fastify, container);
   await channelRoutes(fastify, container);
+
+  // Start periodic performance and memory reporting
+  if (process.env.NODE_ENV === 'production') {
+    startPerformanceReporting(60); // Every 60 minutes
+    startMemoryMonitoring(30); // Every 30 minutes
+    logger.info('Performance and memory monitoring started');
+  }
+
+  logger.info('Fastify application configured successfully');
 
   return fastify;
 }
