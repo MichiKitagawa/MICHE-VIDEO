@@ -1,8 +1,8 @@
 # Backend Implementation Progress
 
-**最終更新**: 2025-10-27 23:30
+**最終更新**: 2025-10-27 23:45
 **Phase**: Phase 3 - Monetization（収益化）
-**全体進捗**: 60% (Phase 1: 90%, Phase 2: 70%, Phase 3: 85%)
+**全体進捗**: 62% (Phase 1: 90%, Phase 2: 80%, Phase 3: 85%)
 
 ---
 
@@ -209,9 +209,19 @@
   - [x] CLOUDFRONT_KEY_PAIR_ID
   - [x] CLOUDFRONT_PRIVATE_KEY
 
-### 10. 進行中
+### 10. 基本検索機能 ✅
+- [x] VideoRepository search enhancement
+  - [x] Title search (case-insensitive)
+  - [x] Description search (case-insensitive)
+  - [x] Tag search (case-insensitive)
+- [x] Search endpoint: `GET /api/videos?search=query`
+- [x] Category filter support
+- [x] Sorting support (viewCount, createdAt, publishedAt, likeCount)
+- [x] Privacy filtering
+- [x] Adult content filtering
+
+### 11. 進行中
 - [ ] 統合テスト実装
-- [ ] 基本検索機能
 
 ---
 
@@ -398,13 +408,9 @@
 
 ### Phase 2 残タスク
 - [ ] 統合テスト実装
-- [ ] 基本検索機能
 
 ### Phase 3 残タスク
-- [ ] CCBill統合（Stretch Goal 4）
-- [ ] 投げ銭機能
-- [ ] プレイリストCRUD
-- [ ] クリエイター収益管理
+- [ ] CCBill統合（Stretch Goal 4 - 非MVP）
 
 ### Phase 4: Polish & Optimization (仕上げ)
 - [ ] パフォーマンス最適化

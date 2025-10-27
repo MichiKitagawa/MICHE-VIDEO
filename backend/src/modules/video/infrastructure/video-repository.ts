@@ -75,6 +75,13 @@ export class VideoRepository implements IVideoRepository {
       where.OR = [
         { title: { contains: search, mode: 'insensitive' } },
         { description: { contains: search, mode: 'insensitive' } },
+        {
+          tags: {
+            some: {
+              tag: { contains: search, mode: 'insensitive' },
+            },
+          },
+        },
       ];
     }
 
